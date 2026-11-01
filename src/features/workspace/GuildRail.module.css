@@ -1,0 +1,361 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 72px;
+  flex: 0 0 72px;
+  background: var(--rail);
+  overflow: hidden;
+}
+
+/* Only the guild list scrolls: the add button below it must stay put. */
+.guilds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 10px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.guilds::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.footer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  flex: 0 0 auto;
+  padding: 11px 0 12px;
+}
+
+/* Same hairline as the guild dividers, so the add button reads as "after the list". */
+.footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 32px;
+  height: 1px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* Hairline between guilds, inset so it reads as a separator rather than a border. */
+.slot[data-divider="true"]::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 28px;
+  height: 1px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+
+.guild {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+}
+
+.guild:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* The active indicator slides in from the rail edge, exactly where Discord puts it. */
+.pill {
+  position: absolute;
+  left: -10px;
+  width: 4px;
+  height: 0;
+  border-radius: var(--radius-sm);
+  background: var(--text);
+  transition: height 140ms ease;
+}
+
+.guild:hover .pill {
+  height: 20px;
+}
+
+.guild[data-active="true"] .pill {
+  height: 36px;
+}
+
+/*
+ * "Add a Server": a circle that squares off on hover, exactly like a guild icon, so the two read
+ * as the same kind of thing. The plus is a glyph, not an image, and the colour is `--online`.
+ */
+.addIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-round);
+  background: var(--panel-2);
+  color: var(--online);
+  transition: border-radius 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.addIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/*
+ * "Direct messages": the same 52px tile the add button uses, so the rail stays one column of
+ * destinations. This block reserves only the geometry - shape, colour and hover belong to the
+ * item-card theme layer below, which is the single owner of how a destination looks.
+ */
+.homeIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+}
+
+.homeIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.guild:hover .addIcon,
+.guild:focus-visible .addIcon {
+  border-radius: var(--radius-lg);
+  background: var(--online);
+  color: var(--on-status);
+}
+
+.mention {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--rail);
+  border-radius: var(--radius-pill);
+  background: var(--mention);
+  color: var(--on-danger);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  box-sizing: content-box;
+}
+
+.unread {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  border: 3px solid var(--rail);
+  border-radius: var(--radius-round);
+  background: var(--text);
+  box-sizing: content-box;
+}
+
+/*
+ * ============================================================================
+ * Item-card theme layer
+ * ----------------------------------------------------------------------------
+ * Appended rules restyle only: geometry, colours, type and hover timing. The
+ * component markup and the layout above are untouched.
+ * ============================================================================
+ */
+
+.rail {
+  background-color: var(--rail);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+  border-right: var(--border-w) solid var(--line);
+}
+
+.guild {
+  border: var(--border-w) solid transparent;
+  transition:
+    border-color 60ms steps(2, end),
+    background-color 60ms steps(2, end);
+}
+
+.guild:hover {
+  border-color: var(--accent);
+  background-color: var(--hover);
+}
+
+.guild[data-active="true"] {
+  border-color: var(--accent);
+  background-color: var(--active);
+}
+
+.guild:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+/* The rail marker becomes a hard gold bar, not a soft slide. */
+.pill {
+  left: -8px;
+  width: 4px;
+  background: var(--tab);
+  transition: height 60ms steps(2, end);
+}
+
+.guild:hover .pill {
+  height: 18px;
+}
+
+.guild[data-active="true"] .pill {
+  width: 5px;
+  height: 34px;
+  background: var(--tab-hot);
+}
+
+.guild[data-muted="true"] .pill {
+  height: 10px;
+  background: var(--muted);
+}
+
+.guild[data-muted="true"][data-active="true"] .pill {
+  height: 26px;
+}
+
+/* "Add a server": a chamfered gold tile that snaps to solid orange on hover. */
+.addIcon {
+  clip-path: var(--clip-card-sm);
+  border: var(--border-w) solid var(--line);
+  background-color: var(--surface-2);
+  color: var(--accent);
+  transition:
+    background-color 60ms steps(2, end),
+    color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.guild:hover .addIcon,
+.guild:focus-visible .addIcon {
+  border-color: var(--accent-hot);
+  background-color: var(--accent);
+  color: var(--tab-ink);
+}
+
+/* "Direct messages": the add button's chamfered tile, tinted as a place to go rather than an action. */
+.homeIcon {
+  clip-path: var(--clip-card-sm);
+  border: var(--border-w) solid var(--line);
+  background-color: var(--surface-2);
+  color: var(--accent);
+  transition:
+    background-color 60ms steps(2, end),
+    color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.guild:hover .homeIcon,
+.guild:focus-visible .homeIcon,
+.guild[data-active="true"] .homeIcon {
+  border-color: var(--accent-hot);
+  background-color: var(--accent);
+  color: var(--tab-ink);
+}
+
+/* Mention count: a segmented green-on-dark counter tab. */
+.mention {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 20px;
+  height: 16px;
+  padding: 0 5px 0 4px;
+  border: var(--border-w) solid var(--counter-line);
+  background: var(--counter-bg);
+  color: var(--counter-text);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  clip-path: var(--clip-tab);
+}
+
+.mention::before {
+  content: "";
+  width: 3px;
+  height: 8px;
+  flex: 0 0 auto;
+  background: var(--counter-text);
+}
+
+/* Unread: the same green tab, with no digits. */
+.unread {
+  right: -1px;
+  bottom: 1px;
+  width: 10px;
+  height: 12px;
+  border: var(--border-w) solid var(--counter-line);
+  background: var(--counter-text);
+  clip-path: var(--clip-tab);
+}
+
+.mutedBadge {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: var(--border-w) solid var(--line);
+  background: var(--rail);
+  color: var(--gold-dim);
+  clip-path: var(--clip-tab);
+}
+
+.mutedBadge svg {
+  width: 11px;
+  height: 11px;
+}
+
+.footer::before,
+.slot[data-divider="true"]::before {
+  height: 1px;
+  background: var(--line);
+}
+
+/*
+ * Declared last on purpose: the theme layer above sets transitions on `.guild`, `.addIcon` and
+ * `.homeIcon`, and a media query adds no specificity, so an earlier block would lose the cascade.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .guild,
+  .pill,
+  .addIcon,
+  .homeIcon {
+    transition: none;
+  }
+}

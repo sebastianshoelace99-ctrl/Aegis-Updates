@@ -1,0 +1,1139 @@
+.wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 14px;
+  scrollbar-gutter: stable;
+}
+
+/*
+ * Virtualisation without a JS window.
+ *
+ * Variable-height rows cannot be skipped with spacer divs (the trick VirtualGrid uses for its
+ * uniform pitch), and a JS offset would need an inline `style`, which this app's CSP forbids.
+ * `content-visibility` lets Chromium skip layout and paint for offscreen rows using only the
+ * stylesheet, and `contain-intrinsic-size ... auto` remembers each row's real height so the
+ * scrollbar and the anchored-prepend maths stay accurate.
+ */
+.item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+
+.banner {
+  padding: 30px 16px 10px;
+}
+
+.bannerMark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-round);
+  background: var(--active);
+  color: var(--text);
+}
+
+.bannerTitle {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bannerBody {
+  max-width: 640px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.dayDivider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dayDivider::before,
+.dayDivider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+.newDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 16px 4px;
+}
+
+.newDivider::before,
+.newDivider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--mention);
+}
+
+.newDivider span {
+  flex: 0 0 auto;
+  color: var(--mention);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: var(--type-label-transform);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  padding: 2px 16px 2px 0;
+}
+
+.row[data-continuation="false"] {
+  margin-top: 14px;
+}
+
+.row:hover {
+  background: var(--hover);
+}
+
+/* A mention is not just bold text: the row itself marks where to look. */
+.row[data-mentioned="true"] {
+  background: color-mix(in srgb, var(--mention) 9%, transparent);
+  box-shadow: inset 2px 0 0 var(--mention);
+}
+
+.row[data-pending="sending"] {
+  opacity: 0.66;
+}
+
+.row[data-pending="failed"] {
+  box-shadow: inset 2px 0 0 var(--danger);
+}
+
+.gutter {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 12px;
+  padding-top: 2px;
+}
+
+.hoverTime {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0;
+}
+
+.row:hover .hoverTime {
+  opacity: 1;
+}
+
+.content {
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.author {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.time {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.edited {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.body {
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mention {
+  padding: 0 3px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--link) 20%, transparent);
+  color: var(--link);
+  font-weight: 600;
+}
+
+.mention[data-self="true"] {
+  background: var(--mention);
+  color: var(--on-danger);
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 480px;
+  margin-top: 8px;
+}
+
+.attachment {
+  margin: 0;
+  width: 232px;
+  max-width: 100%;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.attachment[data-ratio="16x9"] {
+  aspect-ratio: 16 / 9;
+}
+
+.attachment[data-ratio="3x4"] {
+  aspect-ratio: 3 / 4;
+}
+
+.attachment[data-ratio="1x1"] {
+  aspect-ratio: 1 / 1;
+}
+
+.attachment[data-ratio="4x3"] {
+  aspect-ratio: 4 / 3;
+}
+
+.attachment img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.status[data-status="failed"] {
+  color: var(--danger);
+}
+
+.retry {
+  padding: 2px 8px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.retry:hover {
+  border-color: var(--accent);
+}
+
+.system {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 16px 5px 72px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.systemMark {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-round);
+  background: var(--muted);
+}
+
+.systemAuthor {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.older {
+  padding: 10px 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.skeletonRow {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  padding: 8px 16px 8px 0;
+}
+
+.skeletonAvatar {
+  justify-self: end;
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+  border-radius: var(--radius-round);
+  background: var(--skeleton);
+}
+
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.skeletonLine {
+  height: 10px;
+  background: var(--skeleton);
+  animation: hard-pulse 1.1s steps(2, end) infinite;
+}
+
+.skeletonLine[data-short="true"] {
+  width: 55%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+/*
+ * Compact density. The setting is a data attribute on <html>, so the feed can tighten itself
+ * without a class prop threaded through every row - and without an inline style.
+ */
+:global(html[data-density="compact"]) .row {
+  grid-template-columns: 52px minmax(0, 1fr);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+:global(html[data-density="compact"]) .row[data-continuation="false"] {
+  margin-top: 7px;
+}
+
+:global(html[data-density="compact"]) .gutter {
+  padding-right: 8px;
+}
+
+:global(html[data-density="compact"]) .banner {
+  padding-top: 16px;
+}
+
+:global(html[data-density="compact"]) .system {
+  padding-left: 52px;
+}
+
+:global(html[data-density="compact"]) .body {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.error {
+  margin: 20px 16px;
+  padding: 18px;
+  max-width: 520px;
+  border: var(--border-w) solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.errorTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.errorBody {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.errorAction {
+  padding: 6px 14px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.errorAction:hover {
+  border-color: var(--accent);
+}
+
+.jump {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.jump:hover {
+  border-color: var(--accent);
+}
+
+/* Attachments become mini item cards: orange tab, framed image, gold label row. */
+.attachments {
+  gap: 10px;
+}
+
+.attachment {
+  position: relative;
+  width: 244px;
+  padding-top: 22px;
+  padding-bottom: 20px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+}
+
+.attachment::before {
+  content: "SHARED ITEM";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 44%;
+  height: 22px;
+  padding-left: 8px;
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0.15em;
+  clip-path: var(--clip-tab);
+  z-index: 1;
+}
+
+.attachment::after {
+  content: "ÃƒÂ¢Ã¢â‚¬â€Ã¢â‚¬Â  ARTWORK";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 20px;
+  padding-left: 8px;
+  border-top: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0.14em;
+}
+
+.attachment img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.status {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.04em;
+}
+
+.status[data-status="failed"] {
+  color: var(--danger);
+}
+
+.retry {
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--accent);
+  clip-path: var(--clip-card-sm);
+}
+
+.retry:hover {
+  border-color: var(--accent-hot);
+  color: var(--accent-hot);
+}
+
+.system {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.systemMark {
+  width: 6px;
+  height: 6px;
+  background: var(--tab);
+  clip-path: var(--clip-tab);
+}
+
+.systemAuthor {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.older {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.04em;
+}
+
+.skeletonAvatar {
+  background: var(--skeleton);
+  clip-path: var(--clip-card-sm);
+}
+
+/* Flat pulse instead of a moving gradient. */
+.skeletonLine {
+  background: var(--skeleton);
+  animation: hard-pulse 1.1s steps(2, end) infinite;
+}
+
+.error {
+  border: var(--border-w) solid var(--danger);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+}
+
+.errorTitle {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-size: 18px;
+}
+
+.errorAction {
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  clip-path: var(--clip-card-sm);
+}
+
+.errorAction:hover {
+  border-color: var(--accent-hot);
+  color: var(--accent-hot);
+}
+
+/* Jump-to-present: a small orange tab. */
+.jump {
+  border: 0;
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  clip-path: var(--clip-tab);
+  box-shadow: none;
+}
+
+.jump:hover {
+  background: var(--tab-hot);
+  border-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonLine {
+    animation: none;
+  }
+
+  .row[data-fresh="true"] {
+    animation: none;
+  }
+
+  .row {
+    transition: none;
+  }
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+/* Faint grid + a large, low-opacity shield watermark behind the conversation. */
+.viewport {
+  background-color: var(--chat);
+  background-image: var(--texture-emblem), var(--texture-grid);
+  background-repeat: no-repeat, repeat;
+  background-position: center 22%, 0 0;
+  background-size: min(58%, 520px) auto, 48px 48px;
+  background-attachment: fixed, local;
+}
+
+/* Channel intro as an item card with an orange header tab. */
+.banner {
+  position: relative;
+  margin: 22px 16px 8px;
+  padding: 40px 18px 18px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+}
+
+.banner::before {
+  content: "BRIEFING";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 42%;
+  height: 22px;
+  padding-left: 10px;
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0.18em;
+  clip-path: var(--clip-tab);
+}
+
+.bannerMark {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 10px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--accent);
+  clip-path: var(--clip-card-sm);
+}
+
+.bannerTitle {
+  font-size: 28px;
+  color: var(--text);
+}
+
+.bannerBody {
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+/* Date labels: small gold uppercase, with hard gold rules. */
+.dayDivider {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: var(--type-label-transform);
+}
+
+.dayDivider::before,
+.dayDivider::after {
+  background: var(--line);
+}
+
+.newDivider::before,
+.newDivider::after {
+  height: 2px;
+  background: var(--danger);
+}
+
+.newDivider span {
+  color: var(--danger);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.row {
+  transition: background-color 70ms steps(2, end);
+}
+
+.row:hover {
+  background: var(--hover);
+}
+
+.row[data-mentioned="true"] {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+
+.row[data-pending="failed"] {
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+
+/* ===== Cyberpunk: channel plate and read-outs ==================================
+ * The welcome plate keeps its outline and loses the inherited pale tab: its label becomes a
+ * striped band across the top, and the date rule becomes a mono read-out. Nothing here changes
+ * the markup, and the label text stays the one the component already prints.
+ */
+[data-theme="cyberpunk"] .banner {
+  border: 1px solid var(--hud-line);
+  background: var(--surface);
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .banner::before {
+  right: auto;
+  width: 172px;
+  border-right: 1px solid var(--hud-line-dim);
+  background-color: var(--hud-band);
+  background-image: var(--fx-stripe-pattern);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .bannerMark {
+  border: 1px solid var(--hud-line);
+  background: var(--bg);
+  color: var(--status-accent);
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .bannerTitle {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-theme="cyberpunk"] .bannerBody {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+[data-theme="cyberpunk"] .dayDivider {
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+}
+
+[data-theme="cyberpunk"] .dayDivider::before,
+[data-theme="cyberpunk"] .dayDivider::after {
+  background: var(--hud-line-dim);
+}
+
+
+/* A newly arrived row gets one short static burst, then settles. */
+.row[data-fresh="true"] {
+  animation: static-flicker 360ms steps(2, end) both;
+}
+
+.hoverTime {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* Usernames: heavy condensed italic, coloured by their highest role. */
+.author {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.025em;
+  color: var(--rarity-common);
+}
+
+.time {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.06em;
+}
+
+.edited {
+  color: var(--gold-dim);
+  font-size: 10px;
+}
+
+/* Message copy stays clean white in a reading face. */
+.body {
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--message-size);
+  line-height: 1.5;
+}
+
+/* Mentions and warnings are coral red. */
+.mention {
+  padding: 0 3px 1px;
+  border-bottom: var(--border-w) solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.mention[data-self="true"] {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
+
+  .row[data-fresh="true"] {
+    animation: none;
+  }
+
+  .skeletonLine {
+    animation: none;
+  }
+}
+
+
+/* ===========================================================================
+ * File attachments
+ *
+ * A file is a different object from a gallery plate, so it gets a different card: images keep
+ * their natural aspect ratio (no crop), media gets real controls, and anything else is a link.
+ * ======================================================================== */
+
+.attachments[data-kind="files"] {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: min(520px, 100%);
+}
+
+.fileImage {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  max-width: 420px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  clip-path: var(--clip-card-sm);
+}
+
+.fileImageLink {
+  display: block;
+  line-height: 0;
+}
+
+.fileImage img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.fileCaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 9px;
+  border-top: var(--border-w) solid var(--line);
+  background: var(--panel-2);
+}
+
+.fileName {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  flex: 0 0 auto;
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.05em;
+  text-transform: var(--type-label-transform);
+}
+
+.fileMedia {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 460px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  clip-path: var(--clip-card-sm);
+}
+
+.fileMedia video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  background: var(--media-void);
+}
+
+.fileMedia audio {
+  display: block;
+  width: 100%;
+  padding: 8px;
+}
+
+/* A generic file: glyph, name, size ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â one link, never an inline preview. */
+.fileCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+  padding: 9px 12px;
+  border: var(--border-w) solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  color: var(--text);
+  text-decoration: none;
+  clip-path: var(--clip-card-sm);
+  transition: border-color 60ms steps(2, end);
+}
+
+.fileCard:hover {
+  border-color: var(--accent-hot);
+  background: var(--hover);
+}
+
+.fileCard:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.fileGlyph {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border: var(--border-w) solid var(--line);
+  background: var(--panel-2);
+  color: var(--accent);
+}
+
+.fileBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+
+/*
+ * Message bubble. The tokens make this inert in ECHO-net (zero padding and radius, transparent
+ * fills, no gloss) and a real bubble in Default, Synthwave and Retro. Any other chat-like surface
+ * can reuse `.bubble` + `data-self` to inherit the same language.
+ *
+ * Gloss and depth are separate `background-image` / `box-shadow` layers rather than part of the
+ * fill, so a theme can turn a bubble into glass without touching its contrast-checked colours.
+ * `background-color` (not the `background` shorthand) is deliberate: the shorthand would wipe the
+ * gloss layer out.
+ */
+.bubble {
+  width: max-content;
+  max-width: 100%;
+  padding: var(--bubble-pad, 0);
+  border-radius: var(--bubble-radius, 0);
+  background-color: var(--bubble-received, transparent);
+  background-image: var(--bubble-gloss, none);
+  box-shadow: var(--bubble-shadow, none);
+  color: var(--bubble-received-text, inherit);
+}
+
+.bubble[data-self="true"] {
+  /* Only your own messages move to the opposite edge; the rest keep the avatar gutter. */
+  margin-left: var(--bubble-self-align, 0);
+  background-color: var(--bubble-sent, transparent);
+  background-image: var(--bubble-gloss-self, none);
+  box-shadow: var(--bubble-shadow-self, none);
+  color: var(--bubble-sent-text, inherit);
+  border-bottom-right-radius: var(--bubble-radius-tail, 0);
+}
+
+.bubble[data-self="false"] {
+  border-bottom-left-radius: var(--bubble-radius-tail, 0);
+}
+
+
+/*
+ * ── Reactions ──────────────────────────────────────────────────────────────
+ *
+ * The strip sits under the bubble and borrows the row's rhythm instead of defining its own: a pill
+ * is text-sized, so a row grows by exactly one line when the first reaction lands.
+ */
+.reactions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-round);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.reaction:hover {
+  border-color: var(--accent);
+}
+
+/* Mine: the accent fill is the only signal that says "you are already counted". */
+.reaction[data-mine="true"] {
+  border-color: var(--accent);
+  background: var(--active);
+  color: var(--accent-ink);
+}
+
+/*
+ * A super reaction. Nothing animates on transform or layout - a ring plus a glow already reads as
+ * "loud", and staying out of geometry keeps `content-visibility` rows cheap to measure.
+ */
+.reaction[data-burst="true"] {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 10px -2px var(--accent);
+}
+
+.reactionGlyph {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.reactionCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.reaction[data-mine="true"] .reactionCount {
+  color: var(--accent-ink);
+}
+
+/*
+ * The add control is quiet until the row is hovered or focused. It stays in the DOM rather than
+ * mounting on hover, so the strip never reflows as the pointer crosses it.
+ */
+.reactionAdd {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius-round);
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.row:hover .reactionAdd,
+.reactionAdd:focus-visible,
+.reactionAdd[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.reactionAdd:hover {
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.reactionPicker {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.reactionChoice {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reactionChoice:hover,
+.reactionChoice:focus-visible {
+  background: var(--active);
+}
+
+/* Reduced motion still gets the burst's identity: the ring and glow are static. */
+@media (prefers-reduced-motion: reduce) {
+  .reaction[data-burst="true"] {
+    box-shadow:
+      0 0 0 2px var(--accent),
+      0 0 0 4px var(--active);
+  }
+}
+

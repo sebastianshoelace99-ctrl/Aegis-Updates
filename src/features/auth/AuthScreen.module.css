@@ -1,0 +1,905 @@
+/*
+ * The sign-in surface.
+ *
+ * Layout follows Discord's login screen - a full-bleed brand panel beside one card - while the
+ * language stays Aegis: chamfered corners, one gold accent, Barlow Condensed italic. Nothing here
+ * uses an inline style, so the renderer's `style-src 'self'` stays intact.
+ */
+
+.screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(430px, 0.9fr);
+  min-height: 100%;
+  background-color: var(--shell-bg, var(--bg));
+  background-image: var(--texture-grid);
+  background-size: var(--texture-grid-size, 48px 48px);
+  color: var(--text);
+  overflow: auto;
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Brand panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(32px, 5vw, 72px);
+  overflow: hidden;
+  border-right: var(--border-w) solid var(--line);
+  background-image: var(--texture-emblem),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent) 13%, var(--bg)) 0%,
+      color-mix(in srgb, var(--accent) 4%, var(--bg)) 42%,
+      var(--bg) 100%
+    );
+  background-repeat: var(--texture-emblem-repeat, no-repeat), no-repeat;
+  background-position: var(--texture-emblem-position, 62% 46%), 0 0;
+  background-size: var(--texture-emblem-size, min(78%, 560px) auto), cover;
+}
+
+/* A single diagonal rule, so the panel reads as a printed card rather than a gradient wash. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -22% 38%;
+  height: 66%;
+  border-top: var(--border-w) solid var(--line);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 460px;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mark {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border: 2px solid var(--gold);
+  background: var(--active);
+  clip-path: polygon(50% 0, 100% 20%, 100% 62%, 50% 100%, 0 62%, 0 20%);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.2em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold);
+}
+
+.heroTitle {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: clamp(36px, 4.6vw, 62px);
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  text-transform: var(--type-label-transform);
+  color: var(--text);
+}
+
+.heroTitle em {
+  display: block;
+  color: var(--gold);
+}
+
+.heroBody {
+  max-width: 40ch;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.points {
+  display: grid;
+  gap: 9px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.points li::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.heroFoot {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.16em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold-dim);
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Card panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.panel {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 40px 28px;
+  min-width: 0;
+}
+
+.stack {
+  display: grid;
+  gap: 14px;
+  width: min(432px, 100%);
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  padding: 34px 32px 30px;
+  border: var(--border-w) solid var(--line-strong);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+  box-shadow: var(--shadow);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--tab);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: auth-rise 160ms steps(4, end) both;
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold-label);
+}
+
+.title {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: var(--type-label-transform);
+  color: var(--text);
+}
+
+.sub {
+  margin: 7px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.mobileBrand {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Form Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.form {
+  display: grid;
+  gap: 7px;
+  margin-top: 20px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold-dim);
+}
+
+.input {
+  width: 100%;
+  padding: 11px 12px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.3;
+  transition: border-color 60ms steps(2, end);
+}
+
+.input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.input:hover {
+  border-color: var(--gold-dim);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent-hot);
+  box-shadow: inset 0 0 0 1px var(--accent-hot);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.passwordWrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.passwordWrap .input {
+  padding-right: 58px;
+}
+
+.reveal {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 52px;
+  border: 0;
+  border-left: var(--border-w) solid var(--line);
+  background: transparent;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: var(--type-label-transform);
+  cursor: pointer;
+}
+
+.reveal:hover {
+  background: var(--hover);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--accent-hot);
+}
+
+.submit {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 18px;
+  border: var(--border-w) solid var(--gold);
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.09em;
+  text-transform: var(--type-label-transform);
+  cursor: pointer;
+  clip-path: var(--clip-tab);
+  transition: background-color 60ms steps(2, end);
+}
+
+.submit:hover:not(:disabled),
+.submit:focus-visible:not(:disabled) {
+  background: var(--tab-hot);
+  outline: none;
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.actions .submit {
+  margin-top: 0;
+  flex: 1 1 auto;
+}
+
+.secondary {
+  padding: 12px 16px;
+  border: var(--border-w) solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.07em;
+  text-transform: var(--type-label-transform);
+  cursor: pointer;
+  clip-path: var(--clip-tab);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--text);
+  background: var(--hover);
+}
+
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switch {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.switch .link {
+  margin-left: 4px;
+  font-size: 13px;
+}
+
+.alert,
+.notice {
+  margin: 10px 0 2px;
+  padding: 9px 11px;
+  border-left: 2px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.notice {
+  border-left-color: var(--gold);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--muted);
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Divider and providers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.18em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+.providers {
+  display: grid;
+  gap: 8px;
+}
+
+.provider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-align: left;
+  cursor: pointer;
+  clip-path: var(--clip-card-sm);
+  transition:
+    background-color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.provider:hover:not(:disabled),
+.provider:focus-visible:not(:disabled) {
+  border-color: var(--gold);
+  background: var(--active);
+  outline: none;
+}
+
+.provider:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.providerIcon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: var(--border-w) solid var(--line);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+.provider[data-provider="discord"] .providerIcon {
+  color: #5865f2;
+}
+
+.provider[data-provider="apple"] .providerIcon {
+  color: var(--text);
+}
+
+.providerSuffix {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.12em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.providerHint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.providerHint code {
+  padding: 0 2px;
+  color: var(--gold-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+.setupNote {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: var(--border-w) solid var(--line);
+}
+
+.setupLabel {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold-dim);
+}
+
+.setupList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.setupList li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+  align-items: baseline;
+}
+
+.setupList strong {
+  color: var(--gold-dim);
+  font-weight: 600;
+}
+
+.setupList span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.footNote {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+}
+
+.legal {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Registration wizard Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 18px;
+}
+
+.stepBar {
+  height: 3px;
+  background: var(--line);
+}
+
+.stepBar[data-state="done"] {
+  background: var(--gold-dim);
+}
+
+.stepBar[data-state="active"] {
+  background: var(--gold);
+}
+
+.stepCaption {
+  margin: 7px 0 0;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.16em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.strength {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 7px;
+  --strength-color: var(--danger);
+}
+
+.strength[data-score="2"] {
+  --strength-color: var(--color-warning);
+}
+
+.strength[data-score="3"] {
+  --strength-color: var(--gold);
+}
+
+.strength[data-score="4"] {
+  --strength-color: var(--counter-text);
+}
+
+.strengthSegment {
+  height: 4px;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.strengthSegment[data-on="true"] {
+  background: var(--strength-color);
+}
+
+.strengthLabel {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.check input {
+  width: 15px;
+  height: 15px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--tab);
+  cursor: pointer;
+}
+
+.check a {
+  color: var(--gold);
+  text-underline-offset: 3px;
+}
+
+.done {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 6px 0 0;
+  text-align: center;
+}
+
+.doneMark {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  margin-bottom: 2px;
+  border: 2px solid var(--gold);
+  background: var(--active);
+  color: var(--gold);
+  clip-path: polygon(50% 0, 100% 20%, 100% 62%, 50% 100%, 0 62%, 0 20%);
+}
+
+.doneName {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.doneHandle {
+  margin: -4px 0 0;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.12em;
+  color: var(--gold-label);
+}
+
+.doneBody {
+  max-width: 34ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.done .submit {
+  margin-top: 8px;
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Session splash / backend-down Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.splash {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 32px;
+  background-color: var(--bg);
+  background-image: var(--texture-emblem), var(--texture-grid);
+  background-repeat: no-repeat, repeat;
+  background-position: center 42%, 0 0;
+  background-size: min(56vw, 620px) auto, 48px 48px;
+  color: var(--text);
+}
+
+.splashPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 520px;
+  padding: 30px 32px 28px;
+  border: var(--border-w) solid var(--line-strong);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+}
+
+.splashMark {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+  border: 2px solid var(--gold);
+  background: var(--active);
+  clip-path: polygon(50% 0, 100% 20%, 100% 62%, 50% 100%, 0 62%, 0 20%);
+}
+
+.splashMark[data-error="true"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.splashTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-transform: var(--type-label-transform);
+  color: var(--gold);
+}
+
+.splashBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.splashActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Responsive Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+@media (max-width: 1040px) {
+  .screen {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    display: none;
+  }
+
+  .mobileBrand {
+    display: flex;
+  }
+
+  .panel {
+    align-content: start;
+    min-height: 100vh;
+    padding: 44px 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: 26px 20px 24px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 28px 14px;
+  }
+}
+
+/*
+ * Shape for editions with a radius. ECHO-net resolves every one of these to 0px, so its chamfered
+ * silhouette is untouched; Default and friends get the rounded card and inputs the brief asks for
+ * (the app used to force `border-radius: 0 !important` on every element).
+ */
+.card {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.submit,
+.secondary,
+.provider,
+.splashPanel {
+  border-radius: var(--radius);
+}
+
+/* Inputs take the field shape: Retro asks for a capsule, the angular editions resolve it to 0. */
+.input {
+  border-radius: var(--field-radius);
+}
+
+/*
+ * The reveal button sits inside the password field, so it follows that field's right cap instead
+ * of drawing a square corner across a pill.
+ */
+.reveal {
+  border-radius: 0 var(--field-radius) var(--field-radius) 0;
+}
+
+

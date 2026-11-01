@@ -1,0 +1,101 @@
+/*
+ * Contract: canonical semantic tokens -> the names the existing components already speak.
+ *
+ * The app grew up with `--bg`, `--line`, `--gold` and `--tab`. Rather than rewrite twenty CSS
+ * modules into a new vocabulary (and risk a visual regression in ECHO-net), this file is the only
+ * translation layer: every theme authors `--color-*`, `--shape-*`, `--type-*` and `--fx-*`, and
+ * components keep reading the short names. New code should prefer the canonical tokens.
+ *
+ * The selector is `[data-theme], [data-mode]` rather than `:root` so a preview swatch - any element
+ * that repeats the two attributes - resolves the aliases against its own edition. Custom property
+ * substitution is eager at computed-value time, so a child cannot re-resolve a parent's alias.
+ */
+[data-theme],
+[data-mode] {
+  /* Colour */
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-2: var(--color-surface-alt);
+  --rail: var(--color-rail);
+  --panel: var(--color-panel);
+  --panel-2: var(--color-panel-alt);
+  --chat: var(--color-chat);
+  --text: var(--color-text);
+  --muted: var(--color-text-muted);
+  --line: var(--color-border);
+  --line-strong: var(--color-border-strong);
+  --accent: var(--color-primary);
+  --accent-hot: var(--color-primary-hover);
+  --accent-ink: var(--color-on-primary);
+  --tab: var(--color-tab);
+  --tab-hot: var(--color-tab-hover);
+  --tab-ink: var(--color-tab-ink);
+  --danger: var(--color-danger);
+  --skeleton: var(--color-skeleton);
+  --hover: var(--color-hover);
+  --active: var(--color-active);
+  --link: var(--color-link);
+  --mention: var(--color-danger);
+  --focus-ring: var(--color-focus);
+
+  /* ECHO-net vocabulary: the "gold" family is simply the primary/secondary pair in every theme. */
+  --gold: var(--color-primary);
+  --gold-label: var(--color-primary);
+  --gold-dim: var(--color-secondary);
+
+  --counter-bg: var(--color-counter-bg);
+  --counter-text: var(--color-counter-text);
+  --counter-line: var(--color-counter-border);
+
+  --on-danger: var(--color-on-danger);
+  --avatar-ink: var(--color-avatar-ink);
+  /* Ink for text sitting on a presence/status fill (the green "Join Voice" button, for example). */
+  --on-status: var(--color-avatar-ink);
+  --media-void: var(--color-media-void);
+  --media-ink: var(--color-media-ink);
+
+  /* Message bubbles. A theme that does not want bubbles sets both paddings and radii to zero. */
+  --bubble-sent: var(--color-bubble-sent);
+  --bubble-sent-text: var(--color-bubble-sent-text);
+  --bubble-received: var(--color-bubble-received);
+  --bubble-received-text: var(--color-bubble-received-text);
+  --bubble-radius: var(--shape-bubble-radius);
+  --bubble-radius-tail: var(--shape-bubble-radius-tail);
+  --bubble-pad: var(--shape-bubble-pad);
+  /* Alignment applies to a self-authored bubble only; received bubbles stay on the left gutter. */
+  --bubble-self-align: var(--shape-bubble-align);
+  --bubble-gloss: var(--fx-bubble-gloss);
+  --bubble-gloss-self: var(--fx-bubble-gloss-self);
+  --bubble-shadow: var(--fx-bubble-shadow);
+  --bubble-shadow-self: var(--fx-bubble-shadow-self);
+
+  /* Shape */
+  --radius: var(--shape-radius);
+  --radius-sm: var(--shape-radius-sm);
+  --radius-lg: var(--shape-radius-lg);
+  --radius-pill: var(--shape-radius-pill);
+  --radius-round: var(--shape-radius-round);
+  /* Text fields: single-line controls and wrapped ones (textarea, composer). */
+  --field-radius: var(--shape-field-radius);
+  --field-radius-multi: var(--shape-field-radius-multi);
+  --border-w: var(--shape-border-width);
+  --shadow: var(--shape-shadow);
+  --clip-card: var(--shape-clip-card);
+  --clip-card-sm: var(--shape-clip-card-sm);
+  --clip-tab: var(--shape-clip-tab);
+  --clip-tab-left: var(--shape-clip-tab-left);
+
+  /* Type */
+  --type-heading-style: var(--font-heading-style);
+  --type-heading-tracking: var(--font-heading-tracking);
+  --type-heading-transform: var(--font-heading-transform);
+  --type-label-transform: var(--font-label-transform);
+  --type-heading-weight: var(--font-heading-weight);
+  --type-heading-shadow: var(--fx-heading-shadow);
+
+  /* Effects */
+  --texture-grid: var(--fx-texture-grid);
+  --texture-emblem: var(--fx-texture-emblem);
+  --panel-image: var(--fx-panel-image);
+  --glass-blur: var(--fx-glass-blur);
+}

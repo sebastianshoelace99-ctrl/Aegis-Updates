@@ -1,0 +1,233 @@
+/*
+ * Effects: the layer that is not colour - textures, glass, gloss, the scanline wipe - plus the
+ * View Transitions plumbing. Everything here is gated on a token whose default is `none`, so a
+ * theme that does not ask for an effect never pays for it.
+ */
+
+/*
+ * Full-screen texture (scanlines, grain, concrete speckle). Painted above content, never
+ * interactive, and switched off completely at opacity 0.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: var(--fx-overlay, none);
+  background-size: var(--fx-overlay-size, auto);
+  opacity: var(--fx-overlay-opacity, 0);
+  mix-blend-mode: var(--fx-overlay-blend, normal);
+}
+
+/*
+ * Headings. `--fx-heading-gradient` is `none` everywhere except Synthwave, where it becomes a
+ * pink-to-yellow chrome fill; `--fx-heading-fill: currentColor` keeps ordinary headings ordinary.
+ */
+h1,
+h2,
+h3,
+h4 {
+  text-shadow: var(--type-heading-shadow, none);
+}
+
+:where(h1, h2, h3) {
+  background-image: var(--fx-heading-gradient, none);
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: var(--fx-heading-fill, currentColor);
+}
+
+/* Gloss: a top-half highlight over every button. Retro turns it on; everyone else leaves it at 0.
+ * `isolation` gives the button its own stacking context so the sheen can sit at z-index -1 -
+ * above the button's background, below its label. */
+button {
+  position: relative;
+  isolation: isolate;
+}
+
+button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--fx-button-sheen, none);
+  opacity: var(--fx-button-sheen-opacity, 0);
+  pointer-events: none;
+}
+
+/* HUD motion ------------------------------------------------------------------
+ *
+ * Two effects, both opt-in through a duration token so a theme that never sets one pays nothing.
+ * Deliberately not a glow and not a soft fade: a step-fade on selection and a slow blink on a
+ * status light, which is what a terminal panel does when a value changes.
+ */
+@keyframes aegis-hud-step {
+  0% {
+    opacity: 0.55;
+  }
+  35% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.78;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes aegis-hud-blink {
+  0%,
+  58% {
+    opacity: 1;
+  }
+  59%,
+  100% {
+    opacity: 0.22;
+  }
+}
+
+/*
+ * The two effects above are decoration. Anyone who asked for less motion keeps the state change
+ * and loses the animation - the step-fade is never the only signal that something is selected.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="cyberpunk"] *,
+  [data-theme="cyberpunk"] *::before,
+  [data-theme="cyberpunk"] *::after {
+    animation: none !important;
+  }
+}
+
+/* Scanline wipe ----------------------------------------------------------------
+ *
+ * One white bar travels the viewport in the same time and with the same easing as the clip-path
+ * reveal, so the bar is always exactly at the boundary between editions.
+ *
+ * The bar cannot simply be a fixed `z-index` element: during a View Transition both snapshots live
+ * in the browser's top layer, which paints above every page element. It therefore declares a
+ * `view-transition-name`, which lifts it into its own top-layer group above the root snapshots -
+ * and that group is what the keyframes move. The box is taller than the bar itself so the glow and
+ * the dark under-edge survive the snapshot.
+ */
+.aegis-scanline {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 50px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2147483000;
+  view-transition-name: aegis-scanline;
+  will-change: transform;
+}
+
+/* The short trailing lift just above the bar. */
+.aegis-scanline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 40px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+}
+
+/* The bar, its glow, and a dark under-edge so a white line is visible on a white edition too. */
+.aegis-scanline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: var(--scanline-height, 2px);
+  background: #ffffff;
+  box-shadow:
+    0 0 var(--scanline-glow, 18px) rgba(255, 255, 255, 0.95),
+    0 0 6px 1px rgba(255, 255, 255, 0.9),
+    0 2px 0 rgba(0, 0, 0, 0.45);
+  opacity: var(--scanline-opacity, 0.9);
+}
+
+/* While the wipe runs, the page does not accept clicks - but the theme controls stay live. */
+:root[data-scanline="wipe"] body {
+  pointer-events: none;
+}
+
+:root[data-scanline="wipe"] [data-scanline-exempt],
+:root[data-scanline="wipe"] [data-scanline-exempt] * {
+  pointer-events: auto;
+}
+
+/* Kill the default cross-fade: only the top-down reveal should be visible. */
+:root[data-scanline="wipe"]::view-transition-group(root),
+:root[data-scanline="wipe"]::view-transition-old(root) {
+  animation: none;
+  opacity: 1;
+}
+
+:root[data-scanline="wipe"]::view-transition-new(root) {
+  animation: aegis-scanline-reveal var(--scanline-duration, 1500ms) var(--scanline-ease, linear) both;
+}
+
+/* The bar's own layer, moved in lockstep with the reveal. */
+:root[data-scanline="wipe"]::view-transition-group(aegis-scanline) {
+  animation: aegis-scanline-move var(--scanline-duration, 1500ms) var(--scanline-ease, linear) both;
+}
+
+:root[data-scanline="wipe"]::view-transition-old(aegis-scanline) {
+  animation: none;
+  opacity: 1;
+}
+
+:root[data-scanline="wipe"]::view-transition-new(aegis-scanline) {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes aegis-scanline-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes aegis-scanline-move {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(100vh - 100%));
+  }
+}
+
+/* The fallback sweep (no View Transitions) uses the same keyframes on the bar. */
+@keyframes aegis-scanline-sweep {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 100vh, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-scanline {
+    display: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

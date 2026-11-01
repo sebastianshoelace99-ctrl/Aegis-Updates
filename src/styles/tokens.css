@@ -1,0 +1,125 @@
+/*
+ * Personalization layer.
+ *
+ * Everything here is a *user choice layered on top of a theme*, not theme identity - that lives in
+ * `src/theme/themes/*.css` and is keyed by `[data-theme]` + `[data-mode]`.
+ *
+ *   1. Grid geometry, read by src/ui/VirtualGrid.tsx at runtime.
+ *   2. The accent override. One seed hue can repaint the accent family of any edition; the six
+ *      named hues are the ones ECHO-net shipped, and a colour picker can supply anything else. The
+ *      seed and its two inks are measured in `src/theme/accent.ts` (contrast cannot be computed in
+ *      CSS) and composed here, because the washes and the tab pair are stylesheet business.
+ *   3. Density, message size, display face, texture and motion.
+ */
+
+:root {
+  /* Keep the units unitless-safe: the grid maths multiplies these. */
+  --grid-row: 300px;
+  --grid-min: 264px;
+  --message-size: 14.5px;
+}
+
+/* Accent override --------------------------------------------------------------- */
+
+/*
+ * Accent override
+ *
+ * Any edition can be repainted from one seed: the six hues ECHO-net shipped, or a colour from the
+ * picker. The seed and its two inks are measured in `src/theme/accent.ts` - WCAG contrast cannot be
+ * expressed in a custom property - and everything derivable from them is composed here so the rules
+ * stay inspectable.
+ *
+ * `[data-accent]` exists only while an override is active; `theme` means "keep the edition's own
+ * palette". The attribute is written after the variables, so no rule can read a seed that is not
+ * there yet. Overriding at `:root` deliberately does not reach the theme-preview chips in the
+ * picker: those repeat `data-theme` and must advertise the edition, not the person.
+ *
+ * Only the accent family moves. Borders, surfaces and the danger colour stay the edition's own,
+ * because a Retro sky hairline or a 3px brutalist rule is identity rather than decoration.
+ */
+:root[data-accent]:not([data-accent="theme"])[data-mode] {
+  --accent: var(--accent-strong);
+  --accent-hot: var(--accent-strong-hover);
+  --accent-ink: var(--accent-strong-ink);
+  --link: var(--accent-strong);
+  --focus-ring: var(--accent-strong);
+  --gold: var(--accent-strong);
+  --gold-label: var(--accent-strong);
+  --gold-dim: var(--accent-dim);
+  --tab: var(--accent-seed);
+  --tab-hot: var(--accent-tab-hot);
+  --tab-ink: var(--accent-seed-ink);
+  --counter-bg: var(--accent-seed);
+  --counter-text: var(--accent-seed-ink);
+  --counter-line: var(--accent-seed-ink);
+  --hover: color-mix(in srgb, var(--accent-seed) 9%, transparent);
+  --active: color-mix(in srgb, var(--accent-seed) 17%, transparent);
+  --skeleton: color-mix(in srgb, var(--accent-seed) 12%, transparent);
+
+  /* Components written against the canonical names (the preferred vocabulary) move with them. */
+  --color-primary: var(--accent-strong);
+  --color-primary-hover: var(--accent-strong-hover);
+  --color-on-primary: var(--accent-strong-ink);
+  --color-accent: var(--accent-seed);
+  --color-on-accent: var(--accent-seed-ink);
+  --color-link: var(--accent-strong);
+  --color-focus: var(--accent-strong);
+  --color-tab: var(--accent-seed);
+  --color-tab-hover: var(--accent-tab-hot);
+  --color-tab-ink: var(--accent-seed-ink);
+  --color-counter-bg: var(--accent-seed);
+  --color-counter-text: var(--accent-seed-ink);
+  --color-counter-border: var(--accent-seed-ink);
+  --color-hover: color-mix(in srgb, var(--accent-seed) 9%, transparent);
+  --color-active: color-mix(in srgb, var(--accent-seed) 17%, transparent);
+  --color-skeleton: color-mix(in srgb, var(--accent-seed) 12%, transparent);
+}
+
+/*
+ * ECHO-net's identity is "one accent colour, everything derived from it", hairlines included. It is
+ * the only edition that opts into the tinted border; everyone else keeps what it drew.
+ */
+:root[data-theme="echo-net"][data-accent]:not([data-accent="theme"])[data-mode] {
+  --line: color-mix(in srgb, var(--accent-seed) 34%, transparent);
+  --line-strong: var(--accent-seed);
+  --color-border: color-mix(in srgb, var(--accent-seed) 34%, transparent);
+  --color-border-strong: var(--accent-seed);
+}
+
+/* Reading comfort --------------------------------------------------------------- */
+
+:root[data-message-size="small"] {
+  --message-size: 13px;
+}
+
+:root[data-message-size="large"] {
+  --message-size: 16px;
+}
+
+:root[data-font="classic"] {
+  --font-display: var(--font-body);
+}
+
+:root[data-font="mono"] {
+  --font-display: var(--font-mono);
+}
+
+/* A plain, textureless chrome for people who find the grid noisy. */
+:root[data-texture="plain"] {
+  --texture-grid: none;
+  --texture-emblem: none;
+  --fx-overlay: none;
+}
+
+/*
+ * Reduced motion. `0.001ms` rather than `none` keeps `animationend`/`transitionend` listeners
+ * firing, which is what stops a one-shot flicker from becoming a stuck state.
+ */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

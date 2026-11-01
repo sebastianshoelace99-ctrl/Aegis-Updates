@@ -1,0 +1,274 @@
+.layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px 6px;
+  flex: 0 0 auto;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.toolbarButton,
+.toolbarButtonPrimary {
+  padding: 5px 11px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toolbarButton:hover {
+  border-color: var(--accent);
+}
+
+.toolbarButtonPrimary {
+  background: var(--tab);
+  border-color: transparent;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.toolbarButtonPrimary:hover {
+  filter: brightness(1.07);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 6px 20px;
+  border-top: var(--border-w) solid var(--line);
+  border-bottom: var(--border-w) solid var(--line);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.noticeText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Skeletons reuse the grid pitch so the swap to real cards does not move anything. */
+.skeletons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
+  padding: 8px 12px 24px;
+  overflow: hidden;
+}
+
+.skeletonCell {
+  height: var(--grid-row);
+  padding: 8px;
+}
+
+.skeletonCard {
+  height: 100%;
+  border: var(--border-w) solid var(--line);
+  background: var(--skeleton);
+  clip-path: var(--clip-card);
+  animation: hard-pulse 1.1s steps(2, end) infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonCard {
+    animation: none;
+  }
+}
+
+.errorState {
+  margin: 24px;
+  padding: 20px;
+  border: var(--border-w) solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: var(--radius);
+  background: var(--surface);
+  max-width: 520px;
+}
+
+.errorTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.errorBody {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.retry {
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.retry:hover {
+  border-color: var(--accent);
+}
+/* ===== Item-card theme layer (visual only) ===== */
+
+.left {
+  background-color: var(--chat);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+}
+
+.toolbarButton,
+.toolbarButtonPrimary {
+  border: var(--border-w) solid var(--line);
+  background: transparent;
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  clip-path: var(--clip-card-sm);
+  transition:
+    background-color 60ms steps(2, end),
+    border-color 60ms steps(2, end),
+    color 60ms steps(2, end);
+}
+
+.toolbarButton:hover {
+  border-color: var(--accent-hot);
+  color: var(--accent-hot);
+}
+
+.toolbarButtonPrimary {
+  border-color: transparent;
+  background: var(--tab);
+  color: var(--tab-ink);
+  clip-path: var(--clip-tab);
+}
+
+.toolbarButtonPrimary:hover {
+  background: var(--tab-hot);
+  filter: none;
+}
+
+.notice {
+  border-top: var(--border-w) solid var(--line);
+  border-bottom: var(--border-w) solid var(--line);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.03em;
+}
+
+.chip {
+  border: var(--border-w) solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.03em;
+  clip-path: var(--clip-tab);
+}
+
+.chip:hover {
+  border-color: var(--accent-hot);
+  color: var(--accent-hot);
+}
+
+.count {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+

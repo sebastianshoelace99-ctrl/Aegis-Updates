@@ -1,0 +1,847 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  flex: 0 0 240px;
+  min-height: 0;
+  background: var(--panel);
+  border-right: var(--border-w) solid var(--line);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0 8px 0 16px;
+  border-bottom: var(--border-w) solid var(--line);
+}
+
+.guildName {
+  font-size: 14px;
+  font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapseAll {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.collapseAll:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.collapseAll[data-collapsed="true"] svg {
+  transform: rotate(-90deg);
+}
+
+.nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 8px 14px;
+}
+
+.category {
+  margin-bottom: 6px;
+}
+
+.categoryLabel {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 6px 4px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+  cursor: pointer;
+}
+
+.categoryLabel:hover {
+  color: var(--text);
+}
+
+.chevron {
+  display: grid;
+  place-items: center;
+  transition: transform 120ms ease;
+}
+
+.chevron[data-collapsed="true"] {
+  transform: rotate(-90deg);
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.channel:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.channel[data-active="true"] {
+  background: var(--active);
+  color: var(--text);
+}
+
+.channel[data-unread="true"] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.channel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.glyph {
+  flex: 0 0 auto;
+  opacity: 0.7;
+}
+
+.channelName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention {
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--mention);
+  color: var(--on-danger);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.unread {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: var(--text);
+}
+
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px;
+  background: var(--panel-2);
+  border-top: var(--border-w) solid var(--line);
+  /* Presence rings must match this surface, not the chat pane. */
+  --avatar-ring: var(--panel-2);
+}
+
+.self {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.self:hover {
+  background: var(--hover);
+}
+
+.self:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.selfText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.selfName {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selfStatus {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selfMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.focusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--online);
+}
+
+.focusDot[data-focused="false"] {
+  background: var(--idle);
+}
+
+.dockActions {
+  display: flex;
+  gap: 2px;
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.iconButton[data-on="true"] {
+  color: var(--text);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.panel {
+  background-color: var(--panel);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+  border-right: var(--border-w) solid var(--line);
+}
+
+/* Panel header: a solid orange angled tab. Ink is dark, not white, for AA contrast. */
+.header {
+  border-bottom: 0;
+  background: var(--tab);
+  color: var(--tab-ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+}
+
+.guildName {
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+
+.collapseAll {
+  border: var(--border-w) solid transparent;
+  color: var(--tab-ink);
+  opacity: 0.82;
+  transition:
+    background-color 60ms steps(2, end),
+    opacity 60ms steps(2, end);
+}
+
+.collapseAll:hover {
+  background: rgba(26, 18, 6, 0.16);
+  color: var(--tab-ink);
+  opacity: 1;
+}
+
+.collapseAll:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 1px;
+}
+
+.collapseAll:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.categoryLabel {
+  padding: 8px 5px 4px;
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.categoryLabel:hover {
+  color: var(--accent-hot);
+}
+
+.chevron {
+  color: currentColor;
+  transition: transform 60ms steps(2, end);
+}
+
+.channel {
+  position: relative;
+  color: var(--muted);
+  box-shadow: inset 3px 0 0 transparent;
+  transition:
+    background-color 60ms steps(2, end),
+    color 60ms steps(2, end),
+    box-shadow 60ms steps(2, end);
+}
+
+.channel:hover {
+  background: var(--hover);
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Selected channel: solid orange tab, angled end, dark ink. */
+.channel[data-active="true"] {
+  background: var(--tab);
+  color: var(--tab-ink);
+  box-shadow: none;
+  clip-path: var(--clip-tab);
+}
+
+.channel[data-active="true"] .channelName {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.channel[data-active="true"] .glyph {
+  color: var(--tab-ink);
+  opacity: 1;
+}
+
+.channel[data-unread="true"] {
+  color: var(--text);
+}
+
+.channel[data-unread="true"] .channelName {
+  font-weight: 600;
+}
+
+.channel:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+
+.glyph {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.systemTag {
+  flex: 0 0 auto;
+  padding: 1px 4px;
+  border: var(--border-w) solid currentColor;
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  clip-path: var(--clip-tab);
+}
+
+.channel[data-active="true"] .systemTag {
+  color: var(--tab-ink);
+}
+
+/* Segmented green counter tab for mentions. */
+.mention {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 18px;
+  height: 15px;
+  padding: 0 4px;
+  border: var(--border-w) solid var(--counter-line);
+  background: var(--counter-bg);
+  color: var(--counter-text);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  clip-path: var(--clip-tab);
+}
+
+.mention::before {
+  content: "";
+  width: 2px;
+  height: 7px;
+  background: var(--counter-text);
+}
+
+/* Unread: a small green tab rather than a soft dot. */
+.unread {
+  width: 9px;
+  height: 11px;
+  border: var(--border-w) solid var(--counter-line);
+  background: var(--counter-text);
+  clip-path: var(--clip-tab);
+}
+
+.dock {
+  background-color: var(--panel-2);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+  border-top: var(--border-w) solid var(--line);
+}
+
+.self:hover {
+  background: var(--hover);
+}
+
+.self:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+
+.selfName {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.selfStatus {
+  color: var(--gold-dim);
+  font-size: 11px;
+}
+
+.selfMeta {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+}
+
+.focusDot {
+  width: 6px;
+  height: 6px;
+  clip-path: var(--clip-tab);
+}
+
+.iconButton {
+  border: var(--border-w) solid transparent;
+  color: var(--gold-dim);
+  transition:
+    color 60ms steps(2, end),
+    border-color 60ms steps(2, end),
+    background-color 60ms steps(2, end);
+}
+
+.iconButton:hover {
+  border-color: var(--accent);
+  background: var(--hover);
+  color: var(--accent-hot);
+}
+
+.iconButton[data-on="true"] {
+  border-color: var(--line);
+  color: var(--accent-hot);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel,
+  .collapseAll,
+  .iconButton,
+  .chevron {
+    transition: none;
+  }
+}
+
+/* ===== Cyberpunk: tactical-terminal list layer =================================
+ *
+ * Scoped to the edition so no other theme sees it. A channel row becomes a wide outlined plate:
+ * 1px outline, uppercase wide-tracked label, a chevron, a partial-fill underline and a hatched
+ * block at the far right. Selected is a solid pale fill (dark edition) or a solid slate fill
+ * (light edition) with the chevron, bar and hatch inverted to match.
+ *
+ * The hatch is a background layer and the bar/chevron are the row's two pseudo-elements, so the
+ * row keeps its exact DOM: one button, one glyph, one label.
+ */
+[data-theme="cyberpunk"] .panel {
+  border-right: 1px solid var(--hud-line-dim);
+}
+
+/* Header band: a darker plate with the stripe texture and one chamfered corner. */
+[data-theme="cyberpunk"] .header {
+  height: 56px;
+  flex-basis: 56px;
+  border-bottom: 1px solid var(--hud-line);
+  background-color: var(--hud-band);
+  background-image: var(--fx-stripe-pattern);
+  color: var(--text);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--hud-chamfer)),
+    calc(100% - var(--hud-chamfer)) 100%,
+    0 100%
+  );
+}
+
+[data-theme="cyberpunk"] .guildName {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+[data-theme="cyberpunk"] .collapseAll {
+  border: 1px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+[data-theme="cyberpunk"] .collapseAll:hover {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--text);
+  opacity: 1;
+}
+
+[data-theme="cyberpunk"] .collapseAll:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+
+[data-theme="cyberpunk"] .nav {
+  padding: 8px 7px 14px;
+}
+
+/* Category label: a mono read-out with a mint tick, never a filled tab. */
+[data-theme="cyberpunk"] .categoryLabel {
+  gap: 7px;
+  padding: 12px 4px 6px;
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
+[data-theme="cyberpunk"] .categoryLabel::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 9px;
+  height: 1px;
+  background: var(--status-accent);
+}
+
+[data-theme="cyberpunk"] .categoryLabel:hover {
+  color: var(--text);
+}
+
+[data-theme="cyberpunk"] .channel {
+  position: relative;
+  gap: 7px;
+  margin: 0 0 4px;
+  padding: 7px 44px 9px 8px;
+  /* The row is a control, so its outline uses the brightened token rather than the dim one. */
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background-color: transparent;
+  background-image: var(--fx-hatch-pattern);
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 15px 11px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition:
+    background-color var(--fx-flicker-duration) steps(2, end),
+    border-color var(--fx-flicker-duration) steps(2, end),
+    color var(--fx-flicker-duration) steps(2, end);
+}
+
+/* Chevron. Two borders on a rotated box: no glyph, no extra node. */
+[data-theme="cyberpunk"] .channel::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 25px;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: translateY(-50%) rotate(45deg);
+  opacity: 0.8;
+}
+
+/* Partial-fill underline: the row's own progress bar, drawn across the bottom edge. */
+[data-theme="cyberpunk"] .channel::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(to right, currentColor 0 38%, transparent 38%);
+  opacity: 0.55;
+}
+
+[data-theme="cyberpunk"] .channel:hover {
+  border-color: var(--hud-line);
+  background-color: color-mix(in srgb, var(--text) 6%, transparent);
+  color: var(--text);
+}
+
+[data-theme="cyberpunk"] .channel[data-active="true"] {
+  border-color: var(--selected-bg);
+  background-color: var(--selected-bg);
+  background-image: var(--fx-hatch-pattern-invert);
+  color: var(--selected-text);
+  animation: aegis-hud-step var(--fx-flicker-duration) steps(2, end) 1;
+}
+
+[data-theme="cyberpunk"] .channel[data-active="true"]::before {
+  opacity: 1;
+}
+
+[data-theme="cyberpunk"] .glyph {
+  color: currentColor;
+  opacity: 0.6;
+}
+
+[data-theme="cyberpunk"] .channel[data-active="true"] .glyph {
+  color: var(--selected-text);
+  opacity: 0.9;
+}
+
+[data-theme="cyberpunk"] .channelName,
+[data-theme="cyberpunk"] .channel[data-active="true"] .channelName {
+  font-family: inherit;
+  font-size: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+
+[data-theme="cyberpunk"] .channel[data-unread="true"] {
+  color: var(--text);
+}
+
+[data-theme="cyberpunk"] .channel[data-unread="true"] .channelName {
+  font-weight: 600;
+}
+
+[data-theme="cyberpunk"] .channel:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+
+/* A bracketed mono tag instead of a filled plate. */
+[data-theme="cyberpunk"] .systemTag {
+  border: 1px solid currentColor;
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .channel[data-active="true"] .systemTag {
+  color: var(--selected-text);
+}
+
+/* Counter: a solid plate with a thick bar along its bottom edge. */
+[data-theme="cyberpunk"] .mention {
+  min-width: 20px;
+  height: 15px;
+  padding: 0 4px;
+  border: 1px solid var(--hud-line);
+  border-radius: 0;
+  background: var(--selected-bg);
+  color: var(--selected-text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  clip-path: none;
+  box-shadow: inset 0 -2px 0 0 var(--status-accent);
+}
+
+[data-theme="cyberpunk"] .mention::before {
+  display: none;
+}
+
+[data-theme="cyberpunk"] .channel[data-active="true"] .mention {
+  border-color: var(--selected-text);
+  background: var(--selected-text);
+  color: var(--selected-bg);
+}
+
+/* Unread: a mint status light that blinks slowly. Shape carries the state; the blink is extra. */
+[data-theme="cyberpunk"] .unread {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  border-radius: 0;
+  background: var(--status-accent);
+  clip-path: none;
+  animation: aegis-hud-blink var(--fx-status-blink-duration) steps(1, end) infinite;
+}
+
+/* Self card: a read-out strip under the list, not a second filled tab. */
+[data-theme="cyberpunk"] .dock {
+  border-top: 1px solid var(--hud-line);
+  background-color: var(--panel);
+  background-image: none;
+}
+
+[data-theme="cyberpunk"] .self {
+  border-radius: 0;
+}
+
+[data-theme="cyberpunk"] .self:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+
+[data-theme="cyberpunk"] .selfName {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+[data-theme="cyberpunk"] .selfStatus {
+  color: var(--text-muted);
+}
+
+[data-theme="cyberpunk"] .selfMeta {
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+}
+
+[data-theme="cyberpunk"] .focusDot {
+  border-radius: 0;
+  background: var(--status-accent);
+  clip-path: none;
+  animation: aegis-hud-blink var(--fx-status-blink-duration) steps(1, end) infinite;
+}
+
+[data-theme="cyberpunk"] .focusDot[data-focused="false"] {
+  background: var(--color-warning);
+  animation: none;
+}
+
+[data-theme="cyberpunk"] .iconButton {
+  border: 1px solid transparent;
+  border-radius: 0;
+  color: var(--text-muted);
+}
+
+[data-theme="cyberpunk"] .iconButton:hover {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--text);
+}
+
+[data-theme="cyberpunk"] .iconButton[data-on="true"] {
+  border-color: var(--status-accent);
+  color: var(--status-accent);
+}
+
+[data-theme="cyberpunk"] .iconButton:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+
+
+
+

@@ -1,0 +1,274 @@
+/*
+ * Retro - the Frutiger Aero years: glossy glass, sky gradients, clean tech meets nature.
+ *
+ * Not a 70s retro and not synthwave: this is mid-2000s optimism - Vista-era translucency, a
+ * top-half button highlight and soft depth. Light is daytime sky; dark is twilight with an aurora.
+ */
+[data-theme="retro"] {
+  --font-display: "Segoe UI Variable Display", "Segoe UI", "Nunito Sans", "Open Sans", system-ui,
+    sans-serif;
+  --font-body: "Segoe UI Variable Text", "Segoe UI", "Nunito Sans", "Open Sans", "Source Sans 3",
+    system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: -0.005em;
+  --font-heading-transform: none;
+  --font-label-transform: none;
+  --font-heading-weight: 600;
+
+  --shape-radius: 16px;
+  --shape-radius-sm: 12px;
+  --shape-radius-lg: 22px;
+  --shape-radius-pill: 999px;
+  --shape-radius-round: 50%;
+  --shape-border-width: 1px;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 22px;
+  --shape-bubble-radius-tail: 8px;
+  --shape-bubble-pad: 9px 15px;
+  --shape-bubble-align: auto;
+  /*
+   * Every text box is a bubble. One-liners become capsules; wrapped fields (the composer, the
+   * settings textarea) keep a 24px corner so the first line never rides the curve and the field
+   * still reads as glass rather than a rectangle.
+   */
+  --shape-field-radius: var(--shape-radius-pill);
+  --shape-field-radius-multi: 24px;
+  --focus-offset: 2px;
+
+  /* The gloss: one pseudo-element over every button, a highlight on the top half only. */
+  --fx-button-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(255, 255, 255, 0.04) 52%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  --fx-button-sheen-opacity: 1;
+  --fx-texture-grid: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --texture-emblem-position: bottom center;
+  --texture-emblem-size: 100% auto;
+  /* The sky/aurora gradient is a page backdrop, not a shell colour. */
+  --shell-bg: transparent;
+}
+
+[data-theme="retro"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #d6f1ff;
+  --color-surface: rgba(255, 255, 255, 0.74);
+  --color-surface-alt: rgba(255, 255, 255, 0.52);
+  --color-rail: rgba(240, 250, 255, 0.68);
+  --color-panel: rgba(255, 255, 255, 0.6);
+  --color-panel-alt: rgba(255, 255, 255, 0.82);
+  --color-chat: rgba(255, 255, 255, 0.56);
+
+  --color-text: #12344d;
+  --color-text-muted: #41637a;
+  --color-border: rgba(28, 167, 236, 0.38);
+  --color-border-strong: #1ca7ec;
+
+  --color-primary: #0b6e9e;
+  --color-primary-hover: #095a82;
+  --color-on-primary: #ffffff;
+  --color-secondary: #14627f;
+  --color-accent: #2f7d32;
+  --color-on-accent: #ffffff;
+  --color-link: #0b6e9e;
+  --color-focus: #0b6e9e;
+
+  --color-success: #2f7d32;
+  --color-warning: #9a5b00;
+  --color-danger: #b3261e;
+  --color-on-danger: #ffffff;
+
+  --color-hover: rgba(28, 167, 236, 0.12);
+  --color-active: rgba(28, 167, 236, 0.2);
+  --color-skeleton: rgba(28, 167, 236, 0.14);
+
+  --color-tab: #0b6e9e;
+  --color-tab-hover: #095a82;
+  --color-tab-ink: #ffffff;
+
+  --color-counter-bg: #14627f;
+  --color-counter-text: #ffffff;
+  --color-counter-border: #0b6e9e;
+
+  --color-bubble-sent: #0a658f;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: rgba(235, 249, 255, 0.86);
+  --color-bubble-received-text: #12344d;
+
+  /*
+   * The bubble glass. Daylight bubbles are wet-looking: a full-height white gloss under dark ink,
+   * a bright 1px rim and a cool drop shadow so they lift off the sky wash. The sent bubble gets a
+   * narrow top highlight instead - white text must never sit on a washed-out band.
+   */
+  --fx-bubble-gloss:
+    radial-gradient(circle at 16% 9%, rgba(255, 255, 255, 0.95) 0 5px, rgba(255, 255, 255, 0) 8px),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.48) 34%,
+      rgba(255, 255, 255, 0.08) 64%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  --fx-bubble-gloss-self:
+    radial-gradient(circle at 21px 8px, rgba(255, 255, 255, 0.55) 0 2px, rgba(255, 255, 255, 0) 6px),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.5) 0,
+      rgba(255, 255, 255, 0.14) 5px,
+      rgba(255, 255, 255, 0) 12px
+    );
+  --fx-bubble-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 -10px 12px -12px rgba(9, 78, 112, 0.42),
+    0 2px 4px rgba(9, 78, 112, 0.12),
+    0 8px 18px -10px rgba(9, 78, 112, 0.34);
+  --fx-bubble-shadow-self:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 2px 4px rgba(6, 52, 78, 0.2),
+    0 8px 18px -10px rgba(6, 52, 78, 0.45);
+
+  --color-avatar-ink: #ffffff;
+  --color-media-void: #082433;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow: 0 6px 18px rgba(18, 52, 77, 0.12);
+  --shape-shadow-raised: 0 18px 44px rgba(18, 52, 77, 0.2);
+  --fx-heading-shadow: none;
+  --fx-glass-blur: blur(14px);
+
+  /* Daylight: sky wash, soft bubbles, a couple of light rays. */
+  --fx-backdrop: linear-gradient(180deg, #d6f1ff 0%, #eaf9ff 46%, #ffffff 100%);
+  --fx-backdrop-size: 100% 100%;
+  --fx-backdrop-repeat: no-repeat;
+  --fx-texture-emblem: radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.9) 0 3%, transparent 3.4%),
+    radial-gradient(circle at 86% 32%, rgba(255, 255, 255, 0.75) 0 2%, transparent 2.4%),
+    radial-gradient(circle at 70% 44%, rgba(127, 214, 245, 0.45) 0 6%, transparent 6.6%),
+    radial-gradient(circle at 22% 62%, rgba(255, 255, 255, 0.7) 0 4%, transparent 4.6%),
+    radial-gradient(circle at 12% 26%, rgba(108, 194, 74, 0.22) 0 9%, transparent 9.8%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.55) 0 14%, transparent 30%);
+  --fx-texture-emblem-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat;
+
+  --online: #2f7d32;
+  --idle: #9a5b00;
+  --dnd: #b3261e;
+  --offline: #6b7f8c;
+}
+
+[data-theme="retro"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #06223a;
+  --color-surface: rgba(12, 48, 78, 0.7);
+  --color-surface-alt: rgba(18, 62, 96, 0.55);
+  --color-rail: rgba(6, 34, 58, 0.62);
+  --color-panel: rgba(10, 44, 72, 0.62);
+  --color-panel-alt: rgba(16, 58, 92, 0.62);
+  --color-chat: rgba(8, 38, 64, 0.5);
+
+  --color-text: #eaf7ff;
+  --color-text-muted: #a8cbe0;
+  --color-border: rgba(126, 217, 255, 0.34);
+  --color-border-strong: #38bdf8;
+
+  --color-primary: #7fd6f5;
+  --color-primary-hover: #a9e6ff;
+  --color-on-primary: #052235;
+  --color-secondary: #7ed957;
+  --color-accent: #38bdf8;
+  --color-on-accent: #04222f;
+  --color-link: #8ce3ff;
+  --color-focus: #7fd6f5;
+
+  --color-success: #7ed957;
+  --color-warning: #ffc862;
+  --color-danger: #ff8a80;
+  --color-on-danger: #2a0a08;
+
+  --color-hover: rgba(126, 217, 255, 0.12);
+  --color-active: rgba(126, 217, 255, 0.2);
+  --color-skeleton: rgba(126, 217, 255, 0.14);
+
+  --color-tab: #1ca7ec;
+  --color-tab-hover: #38bdf8;
+  --color-tab-ink: #04222f;
+
+  --color-counter-bg: #1ca7ec;
+  --color-counter-text: #04222f;
+  --color-counter-border: #38bdf8;
+
+  --color-bubble-sent: #0c73a8;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: rgba(18, 62, 96, 0.9);
+  --color-bubble-received-text: #eaf7ff;
+
+  /*
+   * Twilight glass. The same wet highlight, dialled down to a hint: here the ink is pale, so a
+   * bright band behind the first line would cost contrast instead of selling depth. The rim is
+   * cyan-tinted and the drop shadow goes black to work against the aurora wash.
+   */
+  --fx-bubble-gloss:
+    radial-gradient(circle at 16% 9%, rgba(190, 242, 255, 0.34) 0 5px, rgba(190, 242, 255, 0) 9px),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.06) 44%,
+      rgba(255, 255, 255, 0) 74%
+    );
+  --fx-bubble-gloss-self:
+    radial-gradient(circle at 21px 8px, rgba(255, 255, 255, 0.5) 0 2px, rgba(255, 255, 255, 0) 6px),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.34) 0,
+      rgba(255, 255, 255, 0.1) 5px,
+      rgba(255, 255, 255, 0) 12px
+    );
+  --fx-bubble-shadow:
+    inset 0 0 0 1px rgba(126, 217, 255, 0.3),
+    inset 0 -10px 14px -12px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.32),
+    0 10px 22px -12px rgba(0, 0, 0, 0.55);
+  --fx-bubble-shadow-self:
+    inset 0 0 0 1px rgba(169, 230, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.32),
+    0 10px 22px -12px rgba(0, 0, 0, 0.55);
+
+  --color-avatar-ink: #052235;
+  --color-media-void: #02131f;
+  --color-media-ink: #eaf7ff;
+
+  --shape-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shape-shadow-raised: 0 26px 60px rgba(0, 0, 0, 0.5);
+  --fx-heading-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
+  --fx-glass-blur: blur(16px);
+
+  /* Twilight: deep teal wash with aurora and bokeh. */
+  --fx-backdrop: linear-gradient(180deg, #06223a 0%, #0b3b5c 100%);
+  --fx-backdrop-size: 100% 100%;
+  --fx-backdrop-repeat: no-repeat;
+  --fx-texture-emblem: radial-gradient(ellipse 60% 40% at 70% 12%, rgba(56, 189, 248, 0.28), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 22% 28%, rgba(126, 217, 87, 0.22), transparent 70%),
+    radial-gradient(circle at 84% 62%, rgba(127, 214, 245, 0.16) 0 7%, transparent 7.6%),
+    radial-gradient(circle at 34% 74%, rgba(127, 214, 245, 0.12) 0 5%, transparent 5.6%),
+    radial-gradient(circle at 60% 40%, rgba(255, 255, 255, 0.08) 0 3%, transparent 3.4%);
+  --fx-texture-emblem-repeat: no-repeat;
+
+  --online: #7ed957;
+  --idle: #ffc862;
+  --dnd: #ff8a80;
+  --offline: #7b93a3;
+}

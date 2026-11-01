@@ -1,0 +1,212 @@
+/*
+ * Theme base: the token contract every edition must satisfy, plus the mode-shared rarities.
+ *
+ * The tree carries two attributes: `data-theme="<id>"` and `data-mode="light|dark"`. Every theme
+ * file has three blocks - one shared (fonts, shape, effects that never change between editions) and
+ * one per mode (colour only). `System` is resolved in JavaScript and never reaches CSS.
+ *
+ * The selectors deliberately do not use `:root`. A subtree that repeats the two attributes gets
+ * that edition's tokens, which is exactly how the switcher renders live preview swatches without
+ * duplicating a single hex value.
+ */
+
+/* Last-resort fallback: the Default edition. Only visible if both attributes are missing. */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f5f7;
+  --color-rail: #f4f5f7;
+  --color-panel: #f4f5f7;
+  --color-panel-alt: #ffffff;
+  --color-chat: #ffffff;
+  --color-text: #1c1e21;
+  --color-text-muted: #65676b;
+  --color-border: #e3e5e8;
+  --color-border-strong: #c9cdd3;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-on-primary: #ffffff;
+  --color-secondary: #4b5563;
+  --color-accent: #2563eb;
+  --color-on-accent: #ffffff;
+  --color-link: #1d4ed8;
+  --color-focus: #1d4ed8;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-on-danger: #ffffff;
+  --color-hover: rgba(28, 30, 33, 0.05);
+  --color-active: rgba(28, 30, 33, 0.09);
+  --color-skeleton: rgba(28, 30, 33, 0.08);
+  --color-tab: #2563eb;
+  --color-tab-hover: #1d4ed8;
+  --color-tab-ink: #ffffff;
+  --color-counter-bg: #2563eb;
+  --color-counter-text: #ffffff;
+  --color-counter-border: #2563eb;
+  --color-bubble-sent: #2563eb;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: #f0f1f3;
+  --color-bubble-received-text: #1c1e21;
+  --color-avatar-ink: #ffffff;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+  --shape-radius: 10px;
+  --shape-radius-sm: 8px;
+  --shape-radius-lg: 14px;
+  --shape-radius-pill: 999px;
+  --shape-radius-round: 50%;
+  /*
+   * Text fields. One token for a single-line control, which an edition can make a capsule, and one
+   * for a wrapped field, where a full pill would put the first line on the curve. Both fall back to
+   * the radii every edition already had, so nothing changes unless a theme opts in.
+   */
+  --shape-field-radius: var(--shape-radius-sm);
+  --shape-field-radius-multi: var(--shape-radius);
+  --shape-border-width: 1px;
+  --shape-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shape-shadow-raised: 0 8px 24px rgba(16, 24, 40, 0.12);
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 18px;
+  --shape-bubble-radius-tail: 6px;
+  --shape-bubble-pad: 8px 12px;
+  /* `auto` right-aligns a self-authored bubble; `0` keeps every message on the left gutter. */
+  --shape-bubble-align: 0;
+  --focus-offset: 2px;
+
+  /* Type. Themes override the family and the three treatment knobs; the contract maps them. */
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: -0.01em;
+  --font-heading-transform: none;
+  --font-label-transform: none;
+  --font-heading-weight: 600;
+  --fx-texture-grid: none;
+  --fx-texture-emblem: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+  /*
+   * Bubble skin. The shape and colour of a bubble are always there; these two pairs are the
+   * optional gloss (a background layer) and depth (a box-shadow), split so a sent bubble on a dark
+   * fill can carry a tighter highlight than a received one with dark ink. `none` is the flat row
+   * every other theme keeps.
+   */
+  --fx-bubble-gloss: none;
+  --fx-bubble-gloss-self: none;
+  --fx-bubble-shadow: none;
+  --fx-bubble-shadow-self: none;
+  --scanline-duration: 1500ms;
+  --scanline-ease: cubic-bezier(0.45, 0, 0.55, 1);
+  --scanline-height: 2px;
+  --scanline-glow: 22px;
+  --scanline-opacity: 1;
+}
+
+/*
+ * Rarity, role, palette and presence colours are mode facts, not theme facts: every light edition
+ * sits on a pale surface and every dark one on a dark surface. Themes override only where their own
+ * identity needs a different ink; defining them once here stops fourteen copies drifting apart.
+ */
+[data-mode="light"] {
+  --rarity-common: #3d352a;
+  --rarity-uncommon: #1c7a42;
+  --rarity-rare: #1a5fa8;
+  --rarity-epic: #6b3bb5;
+  --rarity-legendary: #a24a00;
+
+  --role-0: #3d352a;
+  --role-1: #1c7a42;
+  --role-2: #1a5fa8;
+  --role-3: #6b3bb5;
+  --role-4: #a24a00;
+  --role-5: #8a5200;
+  --role-6: #14548f;
+  --role-7: #14663a;
+  --role-8: #56309a;
+  --role-9: #7a4a00;
+  --role-10: #0f6f3a;
+  --role-11: #1a5fa8;
+  --role-12: #6b3bb5;
+  --role-13: #a24a00;
+  --role-14: #6e5200;
+  --role-15: #4a443a;
+
+  --palette-0: #8f5900;
+  --palette-1: #5b4d74;
+  --palette-2: #3f6b4c;
+  --palette-3: #4a6a8f;
+  --palette-4: #963f34;
+  --palette-5: #7d6f47;
+  --palette-6: #7a5200;
+  --palette-7: #5c5347;
+
+  --online: #1a7a44;
+  --idle: #8a5200;
+  --dnd: #b02a1e;
+  --offline: #6b6860;
+}
+
+[data-mode="dark"] {
+  --rarity-common: #ece7d8;
+  --rarity-uncommon: #5ddb86;
+  --rarity-rare: #55aaff;
+  --rarity-epic: #b471ff;
+  --rarity-legendary: #ff9a3c;
+
+  --role-0: #ece7d8;
+  --role-1: #5ddb86;
+  --role-2: #55aaff;
+  --role-3: #b471ff;
+  --role-4: #ff9a3c;
+  --role-5: #ffbe6a;
+  --role-6: #9bd0ff;
+  --role-7: #9bf0b0;
+  --role-8: #d3b0ff;
+  --role-9: #ffd9a3;
+  --role-10: #79e6a0;
+  --role-11: #7dbdff;
+  --role-12: #c79bff;
+  --role-13: #ffb27a;
+  --role-14: #e8c66a;
+  --role-15: #cfc6b4;
+
+  --palette-0: #e8b04a;
+  --palette-1: #b9a6e6;
+  --palette-2: #8fd3a0;
+  --palette-3: #9fc4ec;
+  --palette-4: #e8a394;
+  --palette-5: #ded3ac;
+  --palette-6: #e8b06a;
+  --palette-7: #c8bda6;
+
+  --online: #5ddb86;
+  --idle: #e8a020;
+  --dnd: #ff6b5e;
+  --offline: #8a8780;
+}
+
+/* Screen-reader-only text: the live region, and any label that has no visual slot. */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

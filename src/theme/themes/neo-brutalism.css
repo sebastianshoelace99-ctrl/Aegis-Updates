@@ -1,0 +1,182 @@
+/*
+ * Neo-Brutalism - the web's anti-design turn: pure black rules, flat poster colour, hard offset
+ * shadows, no gradients, no blur, no texture.
+ *
+ * Deliberately not Neo-Industrialist, which also has thick borders: that one is poured concrete,
+ * stamped stencils and safety yellow on a grey site. This one is a self-published zine - paper or
+ * pure black, screaming lemon and hot pink, three-pixel outlines, and a 6px shadow that never
+ * softens. Chrome is the material: every edge is drawn, nothing is shaded.
+ */
+[data-theme="neo-brutalism"] {
+  --font-display: "Segoe UI Variable Display", "Segoe UI", "Barlow Condensed", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: -0.005em;
+  --font-heading-transform: uppercase;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 800;
+
+  /* Nothing is rounded. A corner radius is a compromise this theme refuses. */
+  --shape-radius: 0px;
+  --shape-radius-sm: 0px;
+  --shape-radius-lg: 0px;
+  --shape-radius-pill: 0px;
+  --shape-radius-round: 0px;
+  --shape-border-width: 3px;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-field-radius: 0px;
+  --shape-field-radius-multi: 0px;
+  /* Bubbles are stickers: a hard 2px ink rim inside the fill, and an offset block behind it. */
+  --shape-bubble-radius: 0px;
+  --shape-bubble-radius-tail: 0px;
+  --shape-bubble-pad: 8px 12px;
+  --shape-bubble-align: auto;
+  --focus-offset: 3px;
+
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-bubble-gloss: none;
+  --fx-bubble-gloss-self: none;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-glass-blur: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  /* Flat by intent: no grid, no grain, no vignette. The borders are the design. */
+  --fx-texture-grid: none;
+  --fx-texture-emblem: none;
+}
+[data-theme="neo-brutalism"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #f3f0e7;
+  --color-surface: #ffffff;
+  --color-surface-alt: #faf7ee;
+  /* The one unrestrained block of colour: the guild rail is a painted wall, not a panel. */
+  --color-rail: #ffd60a;
+  --color-panel: #fffdf6;
+  --color-panel-alt: #ffffff;
+  --color-chat: #fffdf6;
+
+  --color-text: #0b0b0b;
+  --color-text-muted: #45413a;
+  --color-border: #0b0b0b;
+  --color-border-strong: #0b0b0b;
+
+  --color-primary: #1a2fe0;
+  --color-primary-hover: #1024b8;
+  --color-on-primary: #ffffff;
+  --color-secondary: #45413a;
+  --color-accent: #ffd60a;
+  --color-on-accent: #0b0b0b;
+  --color-link: #1a2fe0;
+  --color-focus: #0b0b0b;
+
+  --color-success: #0a7a3d;
+  --color-warning: #a34a00;
+  --color-danger: #c81e1e;
+  --color-on-danger: #ffffff;
+
+  --color-hover: rgba(11, 11, 11, 0.07);
+  --color-active: rgba(11, 11, 11, 0.14);
+  --color-skeleton: rgba(11, 11, 11, 0.1);
+
+  --color-tab: #ff4d9d;
+  --color-tab-hover: #ff77b6;
+  --color-tab-ink: #0b0b0b;
+
+  --color-counter-bg: #0b0b0b;
+  --color-counter-text: #ffd60a;
+  --color-counter-border: #0b0b0b;
+
+  --color-bubble-sent: #ffe14d;
+  --color-bubble-sent-text: #0b0b0b;
+  --color-bubble-received: #ffffff;
+  --color-bubble-received-text: #0b0b0b;
+
+  --color-avatar-ink: #0b0b0b;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  /* The heavy rim is what keeps a white bubble legible on a white conversation. */
+  --fx-bubble-shadow: inset 0 0 0 2px #0b0b0b, 4px 4px 0 rgba(11, 11, 11, 0.85);
+  --fx-bubble-shadow-self: inset 0 0 0 2px #0b0b0b, 4px 4px 0 rgba(11, 11, 11, 0.85);
+  --shape-shadow: 5px 5px 0 #0b0b0b;
+  --shape-shadow-raised: 9px 9px 0 #0b0b0b;
+
+  --online: #0a7a3d;
+  --idle: #a34a00;
+  --dnd: #c81e1e;
+  --offline: #5c5852;
+}
+
+[data-theme="neo-brutalism"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0d0d0d;
+  --color-surface: #191919;
+  --color-surface-alt: #222222;
+  /* Lemon on a black page would drown the near-white ink, so the rail goes black too. */
+  --color-rail: #050505;
+  --color-panel: #141414;
+  --color-panel-alt: #1f1f1f;
+  --color-chat: #101010;
+
+  --color-text: #f5f2e8;
+  --color-text-muted: #b3aea1;
+  --color-border: #f5f2e8;
+  --color-border-strong: #ffffff;
+
+  --color-primary: #ffe14d;
+  --color-primary-hover: #fff0a0;
+  --color-on-primary: #0b0b0b;
+  --color-secondary: #b3aea1;
+  --color-accent: #ff4d9d;
+  --color-on-accent: #0b0b0b;
+  --color-link: #ffe14d;
+  --color-focus: #ffe14d;
+
+  --color-success: #6ee7a0;
+  --color-warning: #ffc24d;
+  --color-danger: #ff8f7a;
+  --color-on-danger: #1a0604;
+
+  --color-hover: rgba(245, 242, 232, 0.08);
+  --color-active: rgba(245, 242, 232, 0.16);
+  --color-skeleton: rgba(245, 242, 232, 0.1);
+
+  --color-tab: #ffe14d;
+  --color-tab-hover: #fff3a8;
+  --color-tab-ink: #0b0b0b;
+
+  --color-counter-bg: #ff4d9d;
+  --color-counter-text: #0b0b0b;
+  --color-counter-border: #f5f2e8;
+
+  --color-bubble-sent: #ff4d9d;
+  --color-bubble-sent-text: #0b0b0b;
+  --color-bubble-received: #191919;
+  --color-bubble-received-text: #f5f2e8;
+
+  --color-avatar-ink: #0b0b0b;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  /* On black, the offset block is white instead of black - the sticker edge has to exist. */
+  --fx-bubble-shadow: inset 0 0 0 2px #0b0b0b, 4px 4px 0 rgba(245, 242, 232, 0.9);
+  --fx-bubble-shadow-self: inset 0 0 0 2px #0b0b0b, 4px 4px 0 rgba(245, 242, 232, 0.9);
+  --shape-shadow: 5px 5px 0 rgba(245, 242, 232, 0.9);
+  --shape-shadow-raised: 9px 9px 0 rgba(245, 242, 232, 0.9);
+
+  --online: #6ee7a0;
+  --idle: #ffc24d;
+  --dnd: #ff8f7a;
+  --offline: #8b8577;
+}

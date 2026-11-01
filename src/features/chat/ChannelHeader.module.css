@@ -1,0 +1,243 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 48px;
+  height: 48px;
+  padding: 0 12px 0 16px;
+  border-bottom: var(--border-w) solid var(--line);
+  background: var(--chat);
+  min-width: 0;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.glyph {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 650;
+  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+}
+
+.topic {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.members {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.members:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.members:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+/* Panel header as a solid orange angled tab; the slant keeps the members button clear. */
+.header {
+  border-bottom: 0;
+  padding-right: 30px;
+  background: var(--tab);
+  color: var(--tab-ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  color: var(--tab-ink);
+}
+
+.glyph {
+  color: var(--tab-ink);
+  opacity: 0.85;
+}
+
+.divider {
+  background: rgba(26, 18, 6, 0.4);
+}
+
+.topic {
+  color: rgba(26, 18, 6, 0.78);
+  font-size: 12px;
+}
+
+.members {
+  border: var(--border-w) solid rgba(26, 18, 6, 0.45);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  transition:
+    background-color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.members:hover {
+  border-color: var(--tab-ink);
+  background: rgba(26, 18, 6, 0.16);
+  color: var(--tab-ink);
+}
+
+.members:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 1px;
+}
+
+/* ===== Cyberpunk: header band ==================================================
+ * Striped band, one chamfered corner, a "//" marker and a small diagonal arrow in the status
+ * colour. The channel name is the page title, so it is the one place the display face runs large.
+ * The member count is real data rendered as a bracketed read-out rather than a sentence.
+ */
+[data-theme="cyberpunk"] .header {
+  flex-basis: 56px;
+  height: 56px;
+  padding-left: 18px;
+  border-bottom: 1px solid var(--hud-line);
+  background-color: var(--hud-band);
+  background-image: var(--fx-stripe-pattern);
+  color: var(--text);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--hud-chamfer)),
+    calc(100% - var(--hud-chamfer)) 100%,
+    0 100%
+  );
+}
+
+[data-theme="cyberpunk"] .name {
+  display: inline;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+[data-theme="cyberpunk"] .name::before {
+  content: "//";
+  margin-right: 9px;
+  color: var(--status-accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  vertical-align: 1px;
+}
+
+/* Diagonal arrow head: two borders on a rotated box, in the status colour. */
+[data-theme="cyberpunk"] .name::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 10px;
+  border-top: 1px solid var(--status-accent);
+  border-right: 1px solid var(--status-accent);
+  transform: rotate(45deg);
+  vertical-align: 2px;
+}
+
+[data-theme="cyberpunk"] .glyph {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+[data-theme="cyberpunk"] .divider {
+  background: var(--hud-line-dim);
+}
+
+[data-theme="cyberpunk"] .topic {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+[data-theme="cyberpunk"] .members {
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  transition:
+    background-color var(--fx-flicker-duration) steps(2, end),
+    border-color var(--fx-flicker-duration) steps(2, end),
+    color var(--fx-flicker-duration) steps(2, end);
+}
+
+[data-theme="cyberpunk"] .members span::before {
+  content: "[";
+}
+
+[data-theme="cyberpunk"] .members span::after {
+  content: "]";
+}
+
+[data-theme="cyberpunk"] .members:hover {
+  border-color: var(--selected-bg);
+  background: var(--selected-bg);
+  color: var(--selected-text);
+}
+
+[data-theme="cyberpunk"] .members:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+

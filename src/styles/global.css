@@ -1,0 +1,207 @@
+/*
+ * Bundled locally so `font-src 'self'` keeps working offline. Barlow Condensed Italic is the
+ * display face (headings, usernames, tabs); Barlow is the reading face (message copy, controls).
+ * Both are OFL; the licences sit beside the files in src/styles/fonts.
+ */
+@font-face {
+  font-family: "Barlow";
+  src: url("./fonts/barlow-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Barlow";
+  src: url("./fonts/barlow-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("./fonts/barlow-condensed-600-italic.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("./fonts/barlow-condensed-700-italic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/*
+ * One shape rule replaces every rounded corner in the app, including ones introduced later.
+ * Chamfers are opt-in clip shapes (`--clip-card`, `--clip-tab`); themes that want round corners set
+ * `--shape-clip-*: none` and a non-zero radius, and the same components follow.
+ */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: var(--fx-backdrop, var(--texture-grid));
+  background-size: var(--fx-backdrop-size, 48px 48px);
+  background-repeat: var(--fx-backdrop-repeat, repeat);
+  background-attachment: var(--fx-backdrop-attachment, scroll);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: var(--type-body-weight, 400);
+  line-height: var(--type-line-height, 1.45);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: var(--type-heading-weight, 700);
+  letter-spacing: var(--type-heading-tracking, 0.015em);
+  text-transform: var(--type-heading-transform, none);
+}
+
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/*
+ * A single, high-contrast focus language: the theme's focus colour, never a soft glow. The offset
+ * is a token because chamfered themes need an inner ring - an outline outside a `clip-path` is
+ * simply cut off.
+ */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: var(--focus-offset, 2px);
+}
+
+/*
+ * Role colour utilities. Shared across the rail, the feed and the profile card so a role index
+ * maps to exactly one class; the component modules only decide weight and background. Every
+ * entry resolves to one of the five rarity hues in tokens.css.
+ */
+.role-color-0 { color: var(--role-0) !important; }
+.role-color-1 { color: var(--role-1) !important; }
+.role-color-2 { color: var(--role-2) !important; }
+.role-color-3 { color: var(--role-3) !important; }
+.role-color-4 { color: var(--role-4) !important; }
+.role-color-5 { color: var(--role-5) !important; }
+.role-color-6 { color: var(--role-6) !important; }
+.role-color-7 { color: var(--role-7) !important; }
+.role-color-8 { color: var(--role-8) !important; }
+.role-color-9 { color: var(--role-9) !important; }
+.role-color-10 { color: var(--role-10) !important; }
+.role-color-11 { color: var(--role-11) !important; }
+.role-color-12 { color: var(--role-12) !important; }
+.role-color-13 { color: var(--role-13) !important; }
+.role-color-14 { color: var(--role-14) !important; }
+.role-color-15 { color: var(--role-15) !important; }
+
+::selection {
+  background: var(--tab);
+  color: var(--tab-ink);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--tab);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--tab-hot);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--rail);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    animation: fade-in 140ms steps(3, end) both;
+  }
+}
+
+/* The "new message" flicker: a short, static burst, not a soft fade. */
+@keyframes static-flicker {
+  0% {
+    opacity: 0.25;
+    filter: contrast(1.5) brightness(1.25);
+  }
+  20% {
+    opacity: 0.75;
+  }
+  38% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 0.55;
+  }
+  68% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hard-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+

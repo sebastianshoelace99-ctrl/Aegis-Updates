@@ -1,0 +1,165 @@
+/*
+ * Default - the baseline every other theme departs from.
+ *
+ * A plain modern messenger: one blue, hairline borders, no texture, no glow, system type. It ships
+ * no font files and no background art, so a first visit paints immediately.
+ */
+[data-theme="default"] {
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: -0.015em;
+  --font-heading-transform: none;
+  --font-label-transform: none;
+  --font-heading-weight: 650;
+
+  --shape-radius: 10px;
+  --shape-radius-sm: 8px;
+  --shape-radius-lg: 14px;
+  --shape-radius-pill: 999px;
+  --shape-radius-round: 50%;
+  --shape-border-width: 1px;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 18px;
+  --shape-bubble-radius-tail: 6px;
+  --shape-bubble-pad: 7px 12px;
+  --shape-bubble-align: auto;
+  --shape-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shape-shadow-raised: 0 12px 32px rgba(16, 24, 40, 0.16);
+  --focus-offset: 2px;
+
+  --fx-texture-grid: none;
+  --fx-texture-emblem: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+}
+
+[data-theme="default"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f5f7;
+  --color-rail: #f4f5f7;
+  --color-panel: #f4f5f7;
+  --color-panel-alt: #ffffff;
+  --color-chat: #ffffff;
+
+  --color-text: #1c1e21;
+  --color-text-muted: #65676b;
+  --color-border: #e3e5e8;
+  --color-border-strong: #c9cdd3;
+
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-on-primary: #ffffff;
+  --color-secondary: #4b5563;
+  --color-accent: #2563eb;
+  --color-on-accent: #ffffff;
+  --color-link: #1d4ed8;
+  --color-focus: #1d4ed8;
+
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-on-danger: #ffffff;
+
+  --color-hover: rgba(28, 30, 33, 0.05);
+  --color-active: rgba(28, 30, 33, 0.09);
+  --color-skeleton: rgba(28, 30, 33, 0.08);
+
+  --color-tab: #2563eb;
+  --color-tab-hover: #1d4ed8;
+  --color-tab-ink: #ffffff;
+
+  --color-counter-bg: #2563eb;
+  --color-counter-text: #ffffff;
+  --color-counter-border: #2563eb;
+
+  --color-bubble-sent: #2563eb;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: #f0f1f3;
+  --color-bubble-received-text: #1c1e21;
+
+  --color-avatar-ink: #ffffff;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  --online: #15803d;
+  --idle: #b45309;
+  --dnd: #b91c1c;
+  --offline: #8a8d93;
+}
+
+[data-theme="default"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #121316;
+  --color-surface: #1c1d21;
+  --color-surface-alt: #24252a;
+  --color-rail: #17181b;
+  --color-panel: #17181b;
+  --color-panel-alt: #1c1d21;
+  --color-chat: #121316;
+
+  --color-text: #ecedef;
+  --color-text-muted: #9a9da3;
+  --color-border: #2c2e33;
+  --color-border-strong: #3a3d44;
+
+  /* #3B82F6 is the identity blue; it is a fill, not a text colour (white on it is 3.7:1). */
+  --color-primary: #7aa2ff;
+  --color-primary-hover: #a8c2ff;
+  --color-on-primary: #0b1220;
+  --color-secondary: #a5a9b1;
+  --color-accent: #2563eb;
+  --color-on-accent: #ffffff;
+  --color-link: #7aa2ff;
+  --color-focus: #8bb0ff;
+
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-on-danger: #1a0708;
+
+  --color-hover: rgba(255, 255, 255, 0.06);
+  --color-active: rgba(255, 255, 255, 0.1);
+  --color-skeleton: rgba(255, 255, 255, 0.07);
+
+  --color-tab: #2563eb;
+  --color-tab-hover: #3b82f6;
+  --color-tab-ink: #ffffff;
+
+  --color-counter-bg: #2563eb;
+  --color-counter-text: #ffffff;
+  --color-counter-border: #3b82f6;
+
+  --color-bubble-sent: #2563eb;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: #24252a;
+  --color-bubble-received-text: #ecedef;
+
+  --color-avatar-ink: #10141c;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shape-shadow-raised: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  --online: #4ade80;
+  --idle: #fbbf24;
+  --dnd: #f87171;
+  --offline: #85888f;
+}

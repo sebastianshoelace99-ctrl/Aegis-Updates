@@ -1,0 +1,172 @@
+/*
+ * ECHO-net - the original Aegis look, extracted without redesign.
+ *
+ * Both editions already existed in `tokens.css` (the app shipped a dark default and a light token
+ * block); they are moved here value-for-value. The dark edition is the reference: it is what every
+ * existing screenshot shows, so it must stay pixel-identical. The light edition is the same
+ * comic-ink printed on aged paper - identical chamfers, hairlines, Barlow Condensed italic and
+ * shield watermark, with dark-gold ink instead of gold.
+ *
+ * The accent family is a separate personalization layer in `src/styles/tokens.css`: one seed hue,
+ * measured in `src/theme/accent.ts`, repaints `--accent`, `--tab` and `--hover` for every edition.
+ * This file still owns the *unpainted* palette - what ECHO-net looks like with no override.
+ */
+[data-theme="echo-net"] {
+  --font-display: "Barlow Condensed", "Bebas Neue", "Oswald", "Arial Narrow", "Segoe UI", sans-serif;
+  --font-body: "Barlow", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, monospace;
+  --font-heading-style: italic;
+  --font-heading-tracking: 0.015em;
+  --font-heading-transform: none;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 700;
+
+  --shape-radius: 0px;
+  --shape-radius-sm: 0px;
+  --shape-radius-lg: 0px;
+  --shape-radius-pill: 0px;
+  --shape-radius-round: 0px;
+  --shape-border-width: 1px;
+  --shape-shadow: none;
+  --shape-shadow-raised: none;
+  --shape-bubble-radius: 0px;
+  --shape-bubble-radius-tail: 0px;
+  --shape-bubble-pad: 0;
+  --focus-offset: 2px;
+
+  --shape-clip-card: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+  --shape-clip-card-sm: polygon(
+    7px 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%,
+    0 7px
+  );
+  --shape-clip-tab: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  --shape-clip-tab-left: polygon(0 0, 100% 0, 100% 100%, 10px 100%);
+
+  --fx-texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M48 0H0v48' fill='none' stroke='%23e8a020' stroke-opacity='0.07'/%3E%3C/svg%3E");
+  --fx-texture-emblem: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'%3E%3Cg fill='none' stroke='%23e8a020' stroke-opacity='0.09'%3E%3Cpath d='M100 8 188 40v70c0 54-38 96-88 122C50 206 12 164 12 110V40Z' stroke-width='2'/%3E%3Cpath d='M100 34 162 57v53c0 40-27 72-62 93-35-21-62-53-62-93V57Z' stroke-width='1'/%3E%3Cpath d='M62 150l38-78 38 78M76 124h48' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E");
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+}
+
+[data-theme="echo-net"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #2a2633;
+  --color-surface: #1c1c20;
+  --color-surface-alt: #24242b;
+  --color-rail: #16161b;
+  --color-panel: #1b1b21;
+  --color-panel-alt: #23232a;
+  --color-chat: #1c1c20;
+
+  --color-text: #f3f0e5;
+  --color-text-muted: #aaa49a;
+  --color-border: rgba(232, 160, 32, 0.34);
+  --color-border-strong: #e8a020;
+
+  --color-primary: #e8a020;
+  --color-primary-hover: #ffc14d;
+  --color-on-primary: #1a1206;
+  --color-secondary: #c99a43;
+  --color-accent: #e8a020;
+  --color-on-accent: #1a1206;
+  --color-link: #e8a020;
+  --color-focus: #ffc14d;
+
+  --color-success: #5ddb86;
+  --color-warning: #e8a020;
+  --color-danger: #ff6b5e;
+  --color-on-danger: #1c0d0a;
+
+  --color-hover: rgba(232, 160, 32, 0.09);
+  --color-active: rgba(232, 160, 32, 0.17);
+  --color-skeleton: rgba(232, 160, 32, 0.12);
+
+  --color-tab: #e8a020;
+  --color-tab-hover: #ffc14d;
+  --color-tab-ink: #1a1206;
+
+  --color-counter-bg: #14241a;
+  --color-counter-text: #79f29a;
+  --color-counter-border: #3f8f57;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #f3f0e5;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #f3f0e5;
+
+  --color-avatar-ink: #1a1206;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+}
+
+[data-theme="echo-net"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #e9dfcc;
+  --color-surface: #f6efdf;
+  --color-surface-alt: #efe5d0;
+  --color-rail: #ded2bb;
+  --color-panel: #efe6d4;
+  --color-panel-alt: #f8f2e4;
+  --color-chat: #f6efdf;
+
+  --color-text: #241d14;
+  --color-text-muted: #6b6152;
+  --color-border: rgba(122, 77, 0, 0.42);
+  --color-border-strong: #8a5200;
+
+  --color-primary: #8a5200;
+  --color-primary-hover: #663c00;
+  --color-on-primary: #fff4dc;
+  --color-secondary: #7a4a00;
+  --color-accent: #8a5200;
+  --color-on-accent: #fff4dc;
+  --color-link: #7a4a00;
+  --color-focus: #663c00;
+
+  --color-success: #1a7a44;
+  --color-warning: #8a5200;
+  --color-danger: #b02a1e;
+  --color-on-danger: #fff4dc;
+
+  --color-hover: rgba(122, 77, 0, 0.08);
+  --color-active: rgba(122, 77, 0, 0.14);
+  --color-skeleton: rgba(122, 77, 0, 0.14);
+
+  --color-tab: #e8a020;
+  --color-tab-hover: #ffc14d;
+  --color-tab-ink: #1a1206;
+
+  --color-counter-bg: #14241a;
+  --color-counter-text: #8fffab;
+  --color-counter-border: #3f8f57;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #241d14;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #241d14;
+
+  --color-avatar-ink: #fff4dc;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+}

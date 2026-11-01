@@ -1,0 +1,164 @@
+/*
+ * Mil-Sim - a printed field manual in one edition, night ops in the other.
+ *
+ * Flat, matte, no glow and no gradient. Hard corners, monospace labels, a topographic grid at very
+ * low opacity and one hazard-orange accent. Olive drab and coyote tan carry the identity.
+ */
+[data-theme="mil-sim"] {
+  --font-display: ui-monospace, "Cascadia Mono", "Consolas", "Lucida Console", monospace;
+  --font-body: "Barlow", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: 0.13em;
+  --font-heading-transform: uppercase;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 700;
+
+  --shape-radius: 0px;
+  --shape-radius-sm: 0px;
+  --shape-radius-lg: 0px;
+  --shape-radius-pill: 0px;
+  --shape-radius-round: 0px;
+  --shape-border-width: 1px;
+  --shape-shadow: none;
+  --shape-shadow-raised: none;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 0px;
+  --shape-bubble-radius-tail: 0px;
+  --shape-bubble-pad: 0;
+  --focus-offset: 1px;
+
+  /* A 1:25 000 map sheet: 8 px minor grid over a 40 px major grid. */
+  --fx-texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M40 0H0v40' fill='none' stroke='%23A39274' stroke-opacity='0.10'/%3E%3Cpath d='M8 0v40M16 0v40M24 0v40M32 0v40M0 8h40M0 16h40M0 24h40M0 32h40' fill='none' stroke='%23A39274' stroke-opacity='0.045'/%3E%3C/svg%3E");
+  --fx-texture-emblem: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+}
+
+[data-theme="mil-sim"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #1b1f14;
+  --color-surface: #22271b;
+  --color-surface-alt: #2a3022;
+  --color-rail: #161a11;
+  --color-panel: #1e2318;
+  --color-panel-alt: #262c1e;
+  --color-chat: #1b1f14;
+
+  --color-text: #d8d4b8;
+  --color-text-muted: #a3a188;
+  --color-border: #3d4530;
+  --color-border-strong: #6e7a45;
+
+  --color-primary: #e8731a;
+  --color-primary-hover: #ff8c3a;
+  --color-on-primary: #1a1004;
+  --color-secondary: #c0ae8a;
+  --color-accent: #e8731a;
+  --color-on-accent: #1a1004;
+  --color-link: #f09050;
+  --color-focus: #ffa45c;
+
+  --color-success: #8fbf6a;
+  --color-warning: #e8b44a;
+  --color-danger: #e2564a;
+  --color-on-danger: #150705;
+
+  --color-hover: rgba(163, 146, 116, 0.1);
+  --color-active: rgba(163, 146, 116, 0.18);
+  --color-skeleton: rgba(163, 146, 116, 0.12);
+
+  --color-tab: #e8731a;
+  --color-tab-hover: #ff8c3a;
+  --color-tab-ink: #1a1004;
+
+  --color-counter-bg: #2e3a1e;
+  --color-counter-text: #cbe08a;
+  --color-counter-border: #6e7a45;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #d8d4b8;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #d8d4b8;
+
+  --color-avatar-ink: #1a1004;
+  --color-media-void: #05070a;
+  --color-media-ink: #ffffff;
+
+  --online: #8fbf6a;
+  --idle: #e8b44a;
+  --dnd: #e2564a;
+  --offline: #7b7a66;
+}
+
+[data-theme="mil-sim"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #e6dfc8;
+  --color-surface: #f1ecd9;
+  --color-surface-alt: #e9e2cd;
+  --color-rail: #ddd5bc;
+  --color-panel: #ede7d4;
+  --color-panel-alt: #f5f0e0;
+  --color-chat: #f1ecd9;
+
+  --color-text: #2a2f1a;
+  --color-text-muted: #5a5a44;
+  --color-border: #b9b08f;
+  --color-border-strong: #4b5320;
+
+  --color-primary: #4b5320;
+  --color-primary-hover: #3a4219;
+  --color-on-primary: #f5f0e0;
+  --color-secondary: #6b5a3a;
+  --color-accent: #a8480b;
+  --color-on-accent: #fff6e8;
+  --color-link: #6f4400;
+  --color-focus: #4b5320;
+
+  --color-success: #2e6b2e;
+  --color-warning: #7a4a00;
+  --color-danger: #9e2b1f;
+  --color-on-danger: #fff6e8;
+
+  --color-hover: rgba(42, 47, 26, 0.07);
+  --color-active: rgba(42, 47, 26, 0.13);
+  --color-skeleton: rgba(42, 47, 26, 0.1);
+
+  --color-tab: #4b5320;
+  --color-tab-hover: #3a4219;
+  --color-tab-ink: #f5f0e0;
+
+  --color-counter-bg: #2e3a1e;
+  --color-counter-text: #d8e8a0;
+  --color-counter-border: #4b5320;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #2a2f1a;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #2a2f1a;
+
+  --color-avatar-ink: #fffdf2;
+  --color-media-void: #05070a;
+  --color-media-ink: #ffffff;
+
+  /* The printed sheet: the same grid, in dark olive, still almost invisible. */
+  --fx-texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M40 0H0v40' fill='none' stroke='%232A2F1A' stroke-opacity='0.12'/%3E%3Cpath d='M8 0v40M16 0v40M24 0v40M32 0v40M0 8h40M0 16h40M0 24h40M0 32h40' fill='none' stroke='%232A2F1A' stroke-opacity='0.055'/%3E%3C/svg%3E");
+
+  --online: #2e6b2e;
+  --idle: #7a4a00;
+  --dnd: #9e2b1f;
+  --offline: #7a7566;
+}

@@ -1,0 +1,217 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  width: 236px;
+  flex: 0 0 236px;
+  min-height: 0;
+  background: var(--panel);
+  border-left: var(--border-w) solid var(--line);
+  --avatar-ring: var(--panel);
+}
+
+.heading {
+  flex: 0 0 auto;
+  padding: 16px 12px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 8px 16px;
+}
+
+.group {
+  margin-bottom: 10px;
+}
+
+.groupLabel {
+  padding: 8px 6px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+  color: var(--muted);
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.member:hover {
+  background: var(--hover);
+}
+
+.member:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.member[data-offline="true"] {
+  opacity: 0.45;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.rail {
+  background-color: var(--panel);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+  border-left: var(--border-w) solid var(--line);
+}
+
+/* Panel header: a compact solid-orange angled tab rather than a plain label. */
+.heading {
+  margin: 10px 8px 2px;
+  padding: 7px 10px;
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  clip-path: var(--clip-tab);
+}
+
+.groupLabel {
+  padding: 9px 6px 4px;
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.member {
+  box-shadow: inset 2px 0 0 transparent;
+  transition:
+    background-color 60ms steps(2, end),
+    box-shadow 60ms steps(2, end);
+}
+
+.member:hover {
+  background: var(--hover);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.member:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+
+.member[data-offline="true"] {
+  opacity: 0.5;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.status,
+.activity {
+  color: var(--gold-dim);
+  font-size: 10.5px;
+}
+
+/* ===== Cyberpunk: roster read-out ==============================================
+ * The heading was a solid pale tab; it becomes the same striped band as every other header, with
+ * a mono label and an outlined plate. Member rows keep their layout and gain a mint hover tick.
+ */
+[data-theme="cyberpunk"] .heading {
+  margin: 10px 8px 2px;
+  border: 1px solid var(--hud-line-dim);
+  background-color: var(--hud-band);
+  background-image: var(--fx-stripe-pattern);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
+[data-theme="cyberpunk"] .groupLabel {
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+}
+
+[data-theme="cyberpunk"] .member {
+  border-radius: 0;
+}
+
+[data-theme="cyberpunk"] .member:hover {
+  background: transparent;
+  box-shadow: inset 2px 0 0 var(--status-accent);
+}
+
+[data-theme="cyberpunk"] .member:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -2px;
+}
+
+[data-theme="cyberpunk"] .name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+[data-theme="cyberpunk"] .status,
+[data-theme="cyberpunk"] .activity {
+  color: var(--text-muted);
+}
+

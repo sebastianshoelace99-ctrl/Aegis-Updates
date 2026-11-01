@@ -1,0 +1,391 @@
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel-2);
+  box-shadow: var(--shadow);
+}
+
+.card:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    animation: profile-rise 150ms cubic-bezier(0.2, 0.9, 0.3, 1.05) both;
+  }
+}
+
+@keyframes profile-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--media-void) 62%, transparent);
+  color: var(--media-ink);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: rgba(8, 10, 16, 0.8);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+
+.avatar {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: -34px;
+  border: 5px solid var(--panel-2);
+  border-radius: var(--radius-round);
+  background: var(--panel-2);
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.handle {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.about {
+  padding-top: 10px;
+  border-top: var(--border-w) solid var(--line);
+}
+
+.aboutTitle {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+}
+
+.bio {
+  display: block;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  padding-top: 10px;
+  border-top: var(--border-w) solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-style: var(--type-heading-style);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.secondary {
+  padding: 8px 12px;
+  border: var(--border-w) solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: var(--type-label-transform);
+  cursor: pointer;
+  clip-path: var(--clip-tab);
+}
+
+.secondary:hover,
+.secondary:focus-visible {
+  border-color: var(--gold);
+  color: var(--text);
+  background: var(--hover);
+  outline: none;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--tab);
+  color: var(--panel-2);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary:hover {
+  filter: brightness(1.08);
+}
+
+.primary:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.card {
+  border: var(--border-w) solid var(--line-strong);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+  box-shadow: none;
+}
+
+.close {
+  border: var(--border-w) solid var(--line);
+  background: rgba(16, 12, 8, 0.62);
+  color: var(--text);
+}
+
+.close:hover {
+  border-color: var(--accent);
+  background: rgba(16, 12, 8, 0.82);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.avatar {
+  border: 4px solid var(--surface);
+  background: var(--surface);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: 0.02em;
+}
+
+.handle {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.12em;
+}
+
+.status {
+  color: var(--text);
+}
+
+/* Role chips: small angled tabs tinted by the rarity colour. */
+.chip {
+  padding: 2px 8px;
+  border: var(--border-w) solid currentColor;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  clip-path: var(--clip-tab);
+}
+
+.about {
+  border-top: var(--border-w) solid var(--line);
+}
+
+.aboutTitle {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.bio {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.empty {
+  border-top: var(--border-w) solid var(--line);
+  color: var(--muted);
+}
+
+.primary {
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  clip-path: var(--clip-tab);
+  transition: background-color 60ms steps(2, end);
+}
+
+.primary:hover {
+  background: var(--tab-hot);
+  filter: none;
+}
+
+.primary:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 2px;
+}
+
+/* Glass. `--glass-blur` is `none` in every edition except Synthwave Light and Retro. */
+.card {
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+
+/*
+ * ── Profile cosmetics ──────────────────────────────────────────────────────
+ *
+ * Frames sit on the card itself and effects sit behind its content. Both are pure decoration: they
+ * never change layout, so a card with a frame occupies exactly the box it did without one and the
+ * dialog cannot jump when the choice changes.
+ *
+ * The effect layer is a fixed-position pseudo-element inside the card rather than a sibling, which
+ * keeps it out of the flex flow and lets `pointer-events: none` make it inert.
+ */
+.card[data-frame="1"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.card[data-frame="2"] {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    0 0 22px -6px var(--accent);
+}
+
+.card[data-frame="3"] {
+  border-style: double;
+  border-width: calc(var(--border-w) * 3);
+  border-color: var(--accent);
+}
+
+.card[data-frame="4"] {
+  border-color: var(--line-strong);
+  box-shadow: inset 0 0 0 calc(var(--border-w) * 2) var(--active);
+}
+
+.card[data-frame="5"] {
+  border-color: var(--accent);
+  outline: var(--border-w) dashed var(--accent);
+  outline-offset: 3px;
+}
+
+/*
+ * Effects are `background-image` on the card itself rather than a pseudo-element. The image paints
+ * behind every child automatically, so there is no stacking context to get wrong, no `position`
+ * requirement on the card, and no risk of tinting the text the effect is meant to sit behind.
+ */
+.card[data-effect="1"] {
+  background-image: radial-gradient(
+    ellipse at 50% 0%,
+    var(--active) 0%,
+    transparent 62%
+  );
+}
+
+.card[data-effect="2"] {
+  background-image: linear-gradient(
+    135deg,
+    var(--active) 0%,
+    transparent 45%,
+    transparent 55%,
+    var(--line) 100%
+  );
+}
+
+.card[data-effect="3"] {
+  background-image: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 40%,
+    var(--active) 100%
+  );
+}
+
+.card[data-effect="4"] {
+  background-image: repeating-linear-gradient(
+    115deg,
+    var(--active) 0 2px,
+    transparent 2px 9px
+  );
+}
+
+.card[data-effect="5"] {
+  background-image: radial-gradient(
+    circle at 50% 120%,
+    var(--active) 0%,
+    transparent 55%
+  );
+}
+
+

@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Refuses a commit that stages a real environment file.
+#
+# `.gitignore` already excludes `.env`, but ignore rules are advisory: `git add -f` overrides
+# them, and a clone made before the rule existed keeps the file tracked. This hook inspects the
+# staged set directly, so a credential can only slip through by deliberately passing
+# `--no-verify`.
+#
+# Installed by `npm run hooks:install`, which points core.hooksPath at scripts/git-hooks.
+
+set -eu
+
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+blocked="$(printf '%s\n' "$staged" | grep -E '(^|/)\.env($|\.)' | grep -v -E '(^|/)\.env\.example$' || true)"
+
+if [ -n "$blocked" ]; then
+  printf '%s\n' "commit blocked: environment files must not be committed:" >&2
+  printf '%s\n' "$blocked" | sed 's/^/  /' >&2
+  printf '\n' >&2
+  printf '%s\n' "Unstage with: git restore --staged <file>" >&2
+  printf '%s\n' "Real values belong in .env (ignored) or in the OS environment." >&2
+  exit 1
+fi
+
+exit 0

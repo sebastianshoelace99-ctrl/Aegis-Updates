@@ -1,0 +1,607 @@
+/*
+ * The dialog surface. There is no `style` attribute anywhere: the progress bar animates with
+ * `transform`, and every colour variation is a `data-*` attribute, so `style-src 'self'` holds.
+ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 6, 10, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  max-height: min(660px, calc(100vh - 48px));
+  min-height: 0;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel-2);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.dialog:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .overlay {
+    animation: fade 120ms ease-out both;
+  }
+  .dialog {
+    animation: rise 160ms cubic-bezier(0.2, 0.9, 0.3, 1.05) both;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.close:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.close:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.head {
+  padding: 28px 24px 14px;
+  text-align: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 20px 16px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.tile:hover {
+  background: var(--active);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.tile:active {
+  transform: scale(0.99);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tileIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+.tileText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tileLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tileCaption {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.iconRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 24px 18px;
+}
+
+.swatches {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.swatchLabel {
+  padding: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+}
+
+.swatchRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-round);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.swatch[data-accent="0"] {
+  background: var(--palette-0);
+}
+.swatch[data-accent="1"] {
+  background: var(--palette-1);
+}
+.swatch[data-accent="2"] {
+  background: var(--palette-2);
+}
+.swatch[data-accent="3"] {
+  background: var(--palette-3);
+}
+.swatch[data-accent="4"] {
+  background: var(--palette-4);
+}
+.swatch[data-accent="5"] {
+  background: var(--palette-5);
+}
+.swatch[data-accent="6"] {
+  background: var(--palette-6);
+}
+.swatch[data-accent="7"] {
+  background: var(--palette-7);
+}
+
+/* The selected swatch gets a ring in the surface colour, so it reads on any palette entry. */
+.swatch[data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--panel-2), 0 0 0 4px var(--text);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.field {
+  display: block;
+  padding: 0 24px;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: var(--type-label-transform);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--field-radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.hint {
+  padding: 8px 24px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hint[data-error="true"] {
+  color: var(--danger);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: var(--border-w) solid var(--line);
+  background: var(--panel);
+}
+
+.footer .hint {
+  padding: 0;
+}
+
+.ghost {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  background: var(--hover);
+  text-decoration: underline;
+}
+
+.ghost:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/*
+ * `--panel-2` is dark in the dark theme and white in the light one, so this text clears AA
+ * against both a pale accent and a deep blue one without a second rule.
+ */
+.primary {
+  min-width: 96px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--tab);
+  color: var(--panel-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.primary:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.progress {
+  position: relative;
+  display: block;
+  height: 8px;
+  margin: 8px 24px 28px;
+  border-radius: var(--radius-pill);
+  background: var(--skeleton);
+  overflow: hidden;
+}
+
+.progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tab);
+  transform-origin: left center;
+  animation: fill 620ms linear forwards;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+  .tile {
+    transition: none;
+  }
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.dialog {
+  border: var(--border-w) solid var(--line-strong);
+  background: var(--surface);
+  clip-path: var(--clip-card);
+  box-shadow: none;
+}
+
+/* The dialog head is the orange angled tab. */
+.head {
+  padding: 20px 24px 16px;
+  background: var(--tab);
+  color: var(--tab-ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
+}
+
+.title {
+  color: var(--tab-ink);
+  font-size: 26px;
+}
+
+.body {
+  color: rgba(26, 18, 6, 0.8);
+  font-size: 12px;
+}
+
+.close {
+  z-index: 3;
+  border: var(--border-w) solid rgba(26, 18, 6, 0.4);
+  color: var(--tab-ink);
+}
+
+.close:hover:not(:disabled) {
+  background: rgba(26, 18, 6, 0.16);
+  color: var(--tab-ink);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 1px;
+}
+
+/* Template tiles: compact item cards. */
+.tile {
+  border: var(--border-w) solid var(--line);
+  background: var(--panel);
+  clip-path: var(--clip-card-sm);
+  transition:
+    background-color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.tile:hover {
+  border-color: var(--accent);
+  background: var(--hover);
+}
+
+.tile:active {
+  transform: none;
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.tileIcon {
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--accent);
+  clip-path: var(--clip-card-sm);
+}
+
+.tileLabel {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.tileCaption {
+  color: var(--gold-dim);
+  font-size: 10.5px;
+}
+
+.swatch {
+  border: var(--border-w) solid var(--line);
+  clip-path: var(--clip-card-sm);
+}
+
+.swatch[data-selected="true"] {
+  border-color: var(--accent-hot);
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+.fieldLabel {
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+
+.input {
+  border: var(--border-w) solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  clip-path: var(--clip-card-sm);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.hint {
+  color: var(--gold-dim);
+}
+
+.hint[data-error="true"] {
+  color: var(--danger);
+}
+
+.footer {
+  border-top: var(--border-w) solid var(--line);
+  background-color: var(--panel);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+}
+
+.ghost {
+  border: var(--border-w) solid var(--line);
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  clip-path: var(--clip-card-sm);
+}
+
+.ghost:hover {
+  border-color: var(--accent-hot);
+  background: var(--hover);
+  color: var(--accent-hot);
+  text-decoration: none;
+}
+
+.ghost:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.primary {
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  clip-path: var(--clip-tab);
+  transition: background-color 60ms steps(2, end);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--tab-hot);
+  filter: none;
+}
+
+.primary:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 2px;
+}
+
+.progress {
+  border: var(--border-w) solid var(--line);
+  background: var(--counter-bg);
+}
+
+.progress::after {
+  background: var(--tab);
+}
+
+/* Glass. `--glass-blur` is `none` in every edition except Synthwave Light and Retro. */
+.dialog {
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+

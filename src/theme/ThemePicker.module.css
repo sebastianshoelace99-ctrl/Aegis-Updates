@@ -1,0 +1,304 @@
+/*
+ * Theme and mode controls.
+ *
+ * Everything here reads tokens, including the preview chips: a chip carries `[data-theme]` and
+ * `[data-mode]`, so it paints itself with the edition it is advertising.
+ */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.legend {
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: var(--type-label-transform);
+}
+
+.themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.theme {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  clip-path: var(--clip-card-sm);
+}
+
+.theme:hover {
+  border-color: var(--line-strong);
+  background: var(--hover);
+}
+
+.theme[data-selected="true"] {
+  border-color: var(--accent);
+  background: var(--active);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Inner ring: a normal outline would be clipped by the chamfered themes. */
+.theme:focus-visible,
+.mode:focus-visible,
+.trigger:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+
+.preview {
+  display: flex;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 34px;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.previewRail {
+  width: 38%;
+  height: 100%;
+  border-right: var(--border-w) solid var(--line);
+  background: var(--panel);
+}
+
+.previewBody {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 5px;
+}
+
+.previewLine {
+  height: 3px;
+  border-radius: 1px;
+  background: var(--text);
+  opacity: 0.55;
+}
+
+.previewLine[data-short="true"] {
+  width: 62%;
+}
+
+.previewDot {
+  width: 9px;
+  height: 9px;
+  margin-top: 1px;
+  border-radius: var(--radius-pill);
+  background: var(--tab);
+}
+
+.themeText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.themeName {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: normal;
+  min-width: 0;
+}
+
+.themeBlurb {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: unset;
+  line-height: 1.4;
+  max-width: 100%;
+  word-wrap: break-word;
+  min-width: 0;
+}
+
+.modes {
+  display: inline-flex;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  clip-path: var(--clip-tab);
+  align-self: flex-start;
+}
+
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.mode:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.mode[data-selected="true"] {
+  background: var(--tab);
+  color: var(--tab-ink);
+}
+
+.modeIcon {
+  display: grid;
+  place-items: center;
+}
+
+.modeIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Ã¢â€â‚¬Ã¢â€â‚¬ Dock trigger + popover Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+
+.wrap {
+  position: relative;
+  display: flex;
+}
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--gold-dim);
+  cursor: pointer;
+  clip-path: var(--clip-tab);
+}
+
+.trigger:hover {
+  border-color: var(--accent);
+  background: var(--hover);
+  color: var(--accent-hot);
+}
+
+.popover {
+  position: fixed;
+  left: 12px;
+  bottom: 58px;
+  z-index: 140;
+  width: min(430px, calc(100vw - 24px));
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 14px;
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shape-shadow-raised);
+  clip-path: var(--clip-card);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode {
+    transition: none;
+  }
+}
+
+/* ===== Cyberpunk: switcher =====================================================
+ * The picker is shared, so it picks the new look up almost entirely through tokens: square
+ * corners, 1px outlines, the pale/slate fill for the selected row. Only the things a token cannot
+ * express are spelled out here, and they are scoped to the edition.
+ */
+[data-theme="cyberpunk"] .legend {
+  color: var(--hud-line);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+}
+
+[data-theme="cyberpunk"] .theme {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--surface-2);
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .theme:hover {
+  border-color: var(--hud-line);
+  background: var(--surface);
+}
+
+[data-theme="cyberpunk"] .theme[data-selected="true"] {
+  border-color: var(--selected-bg);
+  background: var(--selected-bg);
+  color: var(--selected-text);
+  box-shadow: none;
+}
+
+[data-theme="cyberpunk"] .theme[data-selected="true"] .themeName,
+[data-theme="cyberpunk"] .theme[data-selected="true"] .themeBlurb {
+  color: var(--selected-text);
+}
+
+[data-theme="cyberpunk"] .preview {
+  border: 1px solid var(--hud-line);
+  border-radius: 0;
+}
+
+[data-theme="cyberpunk"] .modes {
+  border: 1px solid var(--hud-line);
+  border-radius: 0;
+  background: var(--surface-2);
+  clip-path: none;
+}
+
+[data-theme="cyberpunk"] .mode:focus-visible,
+[data-theme="cyberpunk"] .theme:focus-visible,
+[data-theme="cyberpunk"] .trigger:focus-visible {
+  outline: 2px solid var(--status-accent);
+  outline-offset: -3px;
+}
+

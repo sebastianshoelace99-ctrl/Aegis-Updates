@@ -1,0 +1,42 @@
+name: Publish Windows release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      AEGIS_MASTER_SERVER_URL: ${{ secrets.AEGIS_MASTER_SERVER_URL }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release configuration
+        shell: pwsh
+        run: |
+          if (-not $env:AEGIS_MASTER_SERVER_URL) {
+            throw "Set the AEGIS_MASTER_SERVER_URL Actions secret."
+          }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Release tag $env:GITHUB_REF_NAME must match package.json version v$version."
+          }
+
+      - name: Build and publish installer and portable app
+        run: npm run dist:release

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+server-dist/
+release/
+public/art/
+data/
+# Secrets: never commit real credentials. `.env.example` stays tracked as documentation.
+.env
+.env.*
+!.env.example
+credentials.md
+credentials.txt
+oauth_backup.txt
+*oauth*backup*
+*.log

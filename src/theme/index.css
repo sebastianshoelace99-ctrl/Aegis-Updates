@@ -1,0 +1,23 @@
+/*
+ * The theme system, in load order:
+ *
+ *   base.css     - fallback edition, mode-shared palettes, transition tokens, .sr-only
+ *   contract.css - canonical tokens -> the short names every component already uses
+ *   themes/*.css - one file per theme: shared block, then one block per mode
+ *   effects.css  - textures, glass, gloss, gradient headings, the scanline wipe
+ *
+ * `src/styles/tokens.css` loads after this file: it owns the per-user accent derivation and the
+ * density/message-size/font/texture modifiers, which are personalization, not theme identity.
+ */
+@import "./base.css";
+@import "./contract.css";
+@import "./themes/default.css";
+@import "./themes/echo-net.css";
+@import "./themes/mil-sim.css";
+@import "./themes/cyberpunk.css";
+@import "./themes/synthwave.css";
+@import "./themes/retro.css";
+@import "./themes/neo-industrialist.css";
+@import "./themes/cassette-futurism.css";
+@import "./themes/neo-brutalism.css";
+@import "./effects.css";

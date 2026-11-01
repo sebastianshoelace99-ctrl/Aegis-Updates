@@ -1,0 +1,104 @@
+{
+  "name": "aegis-shield",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Artist platform shell - Electron + React vertical slice (see docs/02 section 11)",
+  "author": {
+    "name": "Aegis Shield"
+  },
+  "main": "dist/main.js",
+  "scripts": {
+    "art": "node scripts/generate-art.mjs",
+    "build:electron": "node scripts/build-electron.mjs",
+    "build:renderer": "vite build",
+    "build:server": "node scripts/build-server.mjs",
+    "build": "npm run art && npm run build:electron && npm run build:renderer",
+    "server": "npm run build:server && node server-dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "env:to-user": "node scripts/env-to-user-env.mjs",
+    "hooks:install": "node scripts/install-git-hooks.mjs",
+    "test": "vitest run",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "smoke": "npm run build && node scripts/smoke.mjs",
+    "capture": "node scripts/capture-screenshots.mjs",
+    "start": "npm run build && electron .",
+    "dist": "node scripts/dist-production.mjs",
+    "dist:release": "node scripts/dist-production.mjs --publish always",
+    "dist:dev": "npm run dist:package",
+    "dist:package": "npm run build && electron-builder --win nsis portable"
+  },
+  "build": {
+    "appId": "studio.aegisshield.app",
+    "productName": "Aegis Shield",
+    "publish": {
+      "provider": "github",
+      "owner": "sebastianshoelace99-ctrl",
+      "repo": "Aegis-Updates"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName} Setup ${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "AegisShield-${version}-portable.exe"
+    },
+    "protocols": [
+      {
+        "name": "Aegis Shield invite",
+        "schemes": [
+          "aegis"
+        ]
+      }
+    ]
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.104.5",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^44.9.2",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.15"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11",
+    "pg": "^8.23.1"
+  }
+}

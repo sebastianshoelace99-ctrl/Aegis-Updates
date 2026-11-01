@@ -1,0 +1,19 @@
+.dialog {
+  width: min(520px, 100%);
+  height: auto;
+  min-height: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 24px 24px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}

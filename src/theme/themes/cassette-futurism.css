@@ -1,0 +1,227 @@
+/*
+ * Cassette Futurism - 1970s consumer electronics: bone-coloured plastic, silkscreened mono labels,
+ * amber indicator lamps and a phosphor-green read-out behind a smoked glass window.
+ *
+ * Not a neon 80s fantasy (that is Synthwave) and not a paper field manual (that is Mil-Sim): this is
+ * the machine that actually sat on the desk. Moulded bevels instead of flat fills, 3px radii so every
+ * panel reads as injection-moulded, a faint raster over the whole window, and no message bubbles at
+ * all - the conversation is a printed log on a roll.
+ */
+[data-theme="cassette-futurism"] {
+  --font-display: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --font-body: "Barlow", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: 0.06em;
+  --font-heading-transform: uppercase;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 600;
+
+  /* Moulded plastic: never a sharp corner, never a full capsule either. */
+  --shape-radius: 3px;
+  --shape-radius-sm: 3px;
+  --shape-radius-lg: 4px;
+  --shape-radius-pill: 4px;
+  --shape-radius-round: 50%;
+  --shape-border-width: 2px;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-field-radius: 3px;
+  --shape-field-radius-multi: 3px;
+  /* A printed log: no bubble, so the wrapper stays layout-transparent and every row starts left. */
+  --shape-bubble-radius: 0px;
+  --shape-bubble-radius-tail: 0px;
+  --shape-bubble-pad: 0;
+  --shape-bubble-align: 0;
+  --focus-offset: 2px;
+
+  /* The top light and bottom shade that make a flat fill read as a moulded key. */
+  --fx-button-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.16) 40%,
+    rgba(255, 255, 255, 0) 46%
+  );
+  --fx-button-sheen-opacity: 0.9;
+  --fx-bubble-gloss: none;
+  --fx-bubble-gloss-self: none;
+  --fx-bubble-shadow: none;
+  --fx-bubble-shadow-self: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-glass-blur: none;
+
+  /*
+   * The tape window watermark: a cassette outline in muted brass. A mid tone rather than black or
+   * white, so one asset works on both the bone and the charcoal edition.
+   */
+  --fx-texture-emblem: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 210'%3E%3Cg fill='none' stroke='%23a08f63' stroke-opacity='0.15' stroke-width='6'%3E%3Crect x='8' y='8' width='304' height='194' rx='16'/%3E%3Crect x='46' y='58' width='228' height='92' rx='10'/%3E%3Ccircle cx='112' cy='104' r='26'/%3E%3Ccircle cx='208' cy='104' r='26'/%3E%3Ccircle cx='112' cy='104' r='7'/%3E%3Ccircle cx='208' cy='104' r='7'/%3E%3Cpath d='M74 178h172'/%3E%3C/g%3E%3C/svg%3E");
+  --texture-emblem-position: bottom right;
+  --texture-emblem-size: min(46vw, 460px) auto;
+  --texture-emblem-repeat: no-repeat;
+  /* The page wash lives on the body; the shell has to let it through. */
+  --shell-bg: transparent;
+}
+[data-theme="cassette-futurism"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #d8cfb8;
+  --color-surface: #e9e2d0;
+  --color-surface-alt: #f2ecdd;
+  --color-rail: #c6baa0;
+  --color-panel: #e4dcc8;
+  --color-panel-alt: #efe8d8;
+  --color-chat: #eae3d2;
+
+  --color-text: #221f18;
+  --color-text-muted: #57503f;
+  --color-border: #8c8167;
+  --color-border-strong: #4a4335;
+
+  --color-primary: #1d5c3a;
+  --color-primary-hover: #134127;
+  --color-on-primary: #ecf7ee;
+  --color-secondary: #6b5320;
+  --color-accent: #b26a1f;
+  --color-on-accent: #0a0803;
+  --color-link: #1d5c3a;
+  --color-focus: #8f4a12;
+
+  --color-success: #1c6b3c;
+  --color-warning: #8a5200;
+  --color-danger: #a1281c;
+  --color-on-danger: #fff6f0;
+
+  --color-hover: rgba(34, 31, 24, 0.06);
+  --color-active: rgba(34, 31, 24, 0.12);
+  --color-skeleton: rgba(34, 31, 24, 0.09);
+
+  --color-tab: #c8a23c;
+  --color-tab-hover: #d8b455;
+  --color-tab-ink: #1c1508;
+
+  --color-counter-bg: #1c3a26;
+  --color-counter-text: #b8f094;
+  --color-counter-border: #46704f;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #221f18;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #221f18;
+
+  --color-avatar-ink: #f2f7ec;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 0 rgba(60, 50, 30, 0.16),
+    0 2px 3px rgba(60, 50, 30, 0.16);
+  --shape-shadow-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 14px 30px rgba(50, 42, 26, 0.34);
+
+  --fx-heading-shadow: none;
+  /* A grille in front of a warm plastic wash. */
+  --fx-overlay: repeating-linear-gradient(
+    180deg,
+    rgba(58, 48, 28, 0.22) 0 1px,
+    rgba(0, 0, 0, 0) 1px 4px
+  );
+  --fx-overlay-opacity: 0.35;
+  --fx-overlay-blend: normal;
+  --fx-backdrop:
+    repeating-linear-gradient(180deg, rgba(60, 50, 30, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 4px),
+    linear-gradient(180deg, #ded5bf 0%, #d2c8b0 100%);
+  --fx-backdrop-size: auto, 100% 100%;
+  --fx-backdrop-repeat: repeat, no-repeat;
+
+  --online: #1c6b3c;
+  --idle: #8a5200;
+  --dnd: #a1281c;
+  --offline: #6a6353;
+}
+
+[data-theme="cassette-futurism"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #191712;
+  --color-surface: #23201a;
+  --color-surface-alt: #2c2821;
+  --color-rail: #121009;
+  --color-panel: #1f1c16;
+  --color-panel-alt: #282420;
+  --color-chat: #1b1813;
+
+  --color-text: #e9e3d0;
+  --color-text-muted: #a79d83;
+  --color-border: #4b4434;
+  --color-border-strong: #837a60;
+
+  --color-primary: #9fd98a;
+  --color-primary-hover: #bdecab;
+  --color-on-primary: #10200b;
+  --color-secondary: #c9a04a;
+  --color-accent: #e0a44a;
+  --color-on-accent: #1b1305;
+  --color-link: #a8dd94;
+  --color-focus: #cfe79a;
+
+  --color-success: #86d99a;
+  --color-warning: #e8b45a;
+  --color-danger: #f08a72;
+  --color-on-danger: #1d0c07;
+
+  --color-hover: rgba(159, 217, 138, 0.1);
+  --color-active: rgba(159, 217, 138, 0.18);
+  --color-skeleton: rgba(159, 217, 138, 0.12);
+
+  --color-tab: #9fd98a;
+  --color-tab-hover: #c0e8ab;
+  --color-tab-ink: #10200b;
+
+  --color-counter-bg: #102a16;
+  --color-counter-text: #a8f091;
+  --color-counter-border: #3f6f47;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #e9e3d0;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #e9e3d0;
+
+  --color-avatar-ink: #10200b;
+  --color-media-void: #000000;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  --shape-shadow-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 34px rgba(0, 0, 0, 0.6);
+
+  /* Phosphor bloom: the only glow in the edition, and only behind headings. */
+  --fx-heading-shadow: 0 0 14px rgba(159, 217, 138, 0.28);
+  --fx-overlay: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.6) 0 1px,
+    rgba(0, 0, 0, 0) 1px 4px
+  );
+  --fx-overlay-opacity: 0.4;
+  --fx-overlay-blend: normal;
+  --fx-backdrop:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, rgba(0, 0, 0, 0) 1px 4px),
+    linear-gradient(180deg, #1d1a14 0%, #15130e 100%);
+  --fx-backdrop-size: auto, 100% 100%;
+  --fx-backdrop-repeat: repeat, no-repeat;
+
+  --online: #86d99a;
+  --idle: #e8b45a;
+  --dnd: #f08a72;
+  --offline: #8a8471;
+}
+

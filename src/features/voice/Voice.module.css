@@ -1,0 +1,697 @@
+.route {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--chat);
+}
+
+.stage {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.hero {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 24px 12px 40px;
+  text-align: center;
+}
+
+.heroMark {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-round);
+  background: var(--active);
+  color: var(--text);
+}
+
+.heroMark svg {
+  width: 32px;
+  height: 32px;
+}
+
+.heroTitle {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.heroBody {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.heroMeta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.error {
+  max-width: 520px;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.join {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--online);
+  color: var(--on-status);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.join:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.join:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.join:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.ghost {
+  padding: 9px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  background: var(--hover);
+  text-decoration: underline;
+}
+
+.tileLabel {
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(8, 10, 16, 0.72);
+  color: var(--media-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.screenTile {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  flex: 0 1 auto;
+  width: min(100%, 900px);
+  max-height: 46vh;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--media-void);
+}
+
+.screenTile .tileLabel {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.selfTile,
+.cameraTile,
+.emptyTile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 16 / 9;
+  min-height: 150px;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  text-align: center;
+}
+
+.cameraTile {
+  padding: 0;
+  background: var(--media-void);
+}
+
+.cameraTile .tileLabel {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+}
+
+.selfTile strong,
+.emptyTile strong {
+  font-size: 14px;
+}
+
+.selfTile span,
+.emptyTile span {
+  max-width: 260px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.selfTile[data-speaking="true"] {
+  border-color: var(--online);
+  box-shadow: 0 0 0 2px var(--online);
+}
+
+.emptyTile {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.emptyTile svg {
+  width: 22px;
+  height: 22px;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--media-void);
+}
+
+.video[data-mirror="true"] {
+  transform: scaleX(-1);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 9px 12px;
+  border: var(--border-w) solid color-mix(in srgb, var(--idle) 40%, var(--line));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--idle) 10%, var(--panel));
+  color: var(--text);
+  font-size: 12px;
+}
+
+.noticeClose {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.noticeClose:hover {
+  background: var(--hover);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 12px 18px;
+  border-top: var(--border-w) solid var(--line);
+  background: var(--panel-2);
+}
+
+.meter {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  flex: 1 1 auto;
+  max-width: 240px;
+  height: 18px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.meter span {
+  flex: 1 1 0;
+  min-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--skeleton);
+}
+
+.meter span[data-on="true"] {
+  background: var(--online);
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.control:hover:not(:disabled) {
+  background: var(--active);
+}
+
+.control[data-on="true"] {
+  color: var(--accent);
+}
+
+.control[data-alert="true"] {
+  background: color-mix(in srgb, var(--danger) 22%, var(--surface-2));
+  color: var(--danger);
+}
+
+.control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.leave {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.leave:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 80%, #000);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 7px 8px;
+  border-top: var(--border-w) solid var(--line);
+  background: var(--panel-2);
+}
+
+.statusMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.statusMain:hover {
+  background: var(--hover);
+}
+
+.statusSignal {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-round);
+  background: var(--online);
+}
+
+.statusSignal[data-active="true"] {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--online) 30%, transparent);
+}
+
+.statusText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.statusText strong {
+  color: var(--online);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.statusText span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusActions {
+  display: flex;
+  gap: 2px;
+}
+
+.statusButton {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.statusButton:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.statusButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.statusButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (max-width: 720px) {
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .meter {
+    max-width: none;
+    width: 100%;
+  }
+
+  .buttons {
+    margin-left: 0;
+  }
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.route {
+  background-color: var(--chat);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+}
+
+.heroMark {
+  width: 78px;
+  height: 78px;
+  border: var(--border-w) solid var(--line);
+  background: var(--surface);
+  color: var(--accent);
+  clip-path: var(--clip-card);
+}
+
+.heroTitle {
+  color: var(--text);
+  font-size: 34px;
+}
+
+.heroBody {
+  color: var(--muted);
+}
+
+.heroMeta {
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.05em;
+}
+
+.error {
+  color: var(--danger);
+}
+
+/* Join is the primary orange tab. */
+.join {
+  background: var(--tab);
+  color: var(--tab-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  clip-path: var(--clip-tab);
+  transition: background-color 60ms steps(2, end);
+}
+
+.join:hover:not(:disabled) {
+  background: var(--tab-hot);
+  filter: none;
+}
+
+.join:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 2px;
+}
+
+.ghost {
+  border: var(--border-w) solid var(--line);
+  color: var(--gold-dim);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  clip-path: var(--clip-card-sm);
+}
+
+.ghost:hover {
+  border-color: var(--accent-hot);
+  background: var(--hover);
+  color: var(--accent-hot);
+}
+
+/* Media tiles are item cards with a hard gold edge. */
+.screenTile,
+.selfTile,
+.cameraTile,
+.emptyTile {
+  border: var(--border-w) solid var(--line);
+  background: var(--panel);
+  clip-path: var(--clip-card);
+}
+
+.screenTile,
+.cameraTile {
+  background: var(--media-void);
+}
+
+.selfTile[data-speaking="true"] {
+  border-color: var(--accent-hot);
+  box-shadow: inset 0 0 0 2px var(--accent-hot);
+}
+
+.emptyTile {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.tileLabel {
+  background: rgba(16, 12, 8, 0.82);
+  color: var(--gold-label);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  clip-path: var(--clip-tab);
+}
+
+.selfTile strong,
+.emptyTile strong {
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+.notice {
+  border: var(--border-w) solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, var(--panel));
+  color: var(--text);
+  clip-path: var(--clip-card-sm);
+}
+
+.noticeClose {
+  border: var(--border-w) solid var(--danger);
+  color: var(--danger);
+  clip-path: var(--clip-card-sm);
+}
+
+.noticeClose:hover {
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.controls {
+  border-top: var(--border-w) solid var(--line);
+  background-color: var(--panel-2);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+}
+
+/* Level meter: segmented green on dark, matching the counters. */
+.meter {
+  border: var(--border-w) solid var(--line);
+  background: var(--counter-bg);
+}
+
+.meter span {
+  background: rgba(121, 242, 154, 0.16);
+}
+
+.meter span[data-on="true"] {
+  background: var(--counter-text);
+}
+
+.control {
+  border: var(--border-w) solid var(--line);
+  background: var(--surface-2);
+  color: var(--gold-dim);
+  clip-path: var(--clip-card-sm);
+  transition:
+    background-color 60ms steps(2, end),
+    color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.control:hover:not(:disabled) {
+  border-color: var(--accent-hot);
+  background: var(--hover);
+  color: var(--accent-hot);
+}
+
+.control[data-on="true"] {
+  border-color: var(--accent);
+  color: var(--accent-hot);
+}
+
+.control[data-alert="true"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 20%, var(--surface-2));
+  color: var(--danger);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: 1px;
+}
+
+.leave {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.leave:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 82%, #000);
+}
+
+.status {
+  border-top: var(--border-w) solid var(--line);
+  background-color: var(--panel-2);
+  background-image: var(--texture-grid);
+  background-size: 48px 48px;
+}
+
+.statusMain:hover {
+  background: var(--hover);
+}
+
+.statusSignal {
+  width: 8px;
+  height: 8px;
+  clip-path: var(--clip-tab);
+}
+
+.statusSignal[data-active="true"] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--online) 35%, transparent);
+}
+
+.statusText strong {
+  color: var(--online);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  letter-spacing: 0.06em;
+}
+
+.statusText span {
+  color: var(--gold-dim);
+}
+
+.statusButton {
+  border: var(--border-w) solid transparent;
+  color: var(--gold-dim);
+  transition:
+    color 60ms steps(2, end),
+    border-color 60ms steps(2, end);
+}
+
+.statusButton:hover {
+  border-color: var(--accent);
+  color: var(--accent-hot);
+}
+
+.statusButton:focus-visible {
+  outline: 2px solid var(--accent-hot);
+  outline-offset: -2px;
+}
+

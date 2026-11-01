@@ -1,0 +1,192 @@
+/*
+ * Synthwave - neon sunset, endless highway. Nostalgic rather than gritty.
+ *
+ * The backdrop is one inline SVG: a striped sun, a receding perspective floor and, in the dark
+ * edition only, a starfield. It is anchored to the bottom of the shell through the emblem slot, so
+ * it costs one background-image and no extra DOM.
+ */
+[data-theme="synthwave"] {
+  --font-display: "Bahnschrift", "DIN Alternate", "Audiowide", "Barlow Condensed", "Arial Narrow",
+    sans-serif;
+  --font-body: "Segoe UI Variable Text", "Segoe UI", "Nunito Sans", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: 0.1em;
+  --font-heading-transform: uppercase;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 700;
+
+  --shape-radius: 12px;
+  --shape-radius-sm: 8px;
+  --shape-radius-lg: 18px;
+  --shape-radius-pill: 999px;
+  --shape-radius-round: 50%;
+  --shape-border-width: 1px;
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 18px;
+  --shape-bubble-radius-tail: 6px;
+  --shape-bubble-pad: 7px 12px;
+  --shape-bubble-align: auto;
+  --shape-shadow: none;
+  --shape-shadow-raised: none;
+  --focus-offset: 2px;
+
+  --fx-texture-grid: none;
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+  --fx-overlay-blend: normal;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+
+  --texture-emblem-position: bottom center;
+  --texture-emblem-size: 100% auto;
+  /* Page-wide backdrop lives on <body>, so the shell must not paint over it. */
+  --shell-bg: transparent;
+}
+
+[data-theme="synthwave"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #1a0b2e;
+  --color-surface: #241040;
+  --color-surface-alt: #2a1548;
+  --color-rail: #150826;
+  --color-panel: #200e38;
+  --color-panel-alt: #2a1548;
+  /* Translucent so the sun and the floor read through the conversation pane. */
+  --color-chat: rgba(26, 11, 46, 0.62);
+
+  --color-text: #f3e9ff;
+  --color-text-muted: #c0aeda;
+  --color-border: #4b2e7a;
+  --color-border-strong: #7b2ff7;
+
+  --color-primary: #ff8fc8;
+  --color-primary-hover: #ffb3da;
+  --color-on-primary: #1a0b2e;
+  --color-secondary: #00e5ff;
+  --color-accent: #ffd319;
+  --color-on-accent: #1a0b2e;
+  --color-link: #7cf3ff;
+  --color-focus: #00e5ff;
+
+  --color-success: #3ce6a0;
+  --color-warning: #ffb020;
+  --color-danger: #ff5c7a;
+  --color-on-danger: #1a0410;
+
+  --color-hover: rgba(255, 46, 151, 0.12);
+  --color-active: rgba(255, 46, 151, 0.2);
+  --color-skeleton: rgba(255, 46, 151, 0.14);
+
+  --color-tab: #ff2e97;
+  --color-tab-hover: #ff5fae;
+  --color-tab-ink: #1a0b2e;
+
+  --color-counter-bg: #ffd319;
+  --color-counter-text: #1a0b2e;
+  --color-counter-border: #ffd319;
+
+  --color-bubble-sent: #ff2e97;
+  --color-bubble-sent-text: #1a0b2e;
+  --color-bubble-received: #2a1548;
+  --color-bubble-received-text: #f3e9ff;
+
+  --color-avatar-ink: #1a0b2e;
+  --color-media-void: #0b0416;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow: 0 0 26px rgba(123, 47, 247, 0.35), 0 0 0 1px rgba(255, 46, 151, 0.22);
+  --shape-shadow-raised: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 40px rgba(123, 47, 247, 0.4);
+  --fx-heading-shadow: 0 0 14px rgba(255, 46, 151, 0.45), 0 0 30px rgba(0, 229, 255, 0.2);
+  --fx-heading-gradient: linear-gradient(92deg, #ff2e97 0%, #ff9e00 55%, #ffd319 100%);
+  --fx-heading-fill: transparent;
+  --fx-backdrop: linear-gradient(180deg, #1a0b2e 0%, #2d1b69 100%);
+  --fx-backdrop-size: 100% 100%;
+  --fx-backdrop-repeat: no-repeat;
+
+  /* Sun + starfield + perspective floor, drawn once. */
+  --fx-texture-emblem: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 420'%3E%3Cg opacity='0.55'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23FFD319'/%3E%3Cstop offset='0.5' stop-color='%23FF9E00'/%3E%3Cstop offset='1' stop-color='%23FF2E97'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='%23F3E9FF' fill-opacity='0.75'%3E%3Ccircle cx='92' cy='42' r='1.7'/%3E%3Ccircle cx='168' cy='96' r='1.1'/%3E%3Ccircle cx='248' cy='34' r='1.3'/%3E%3Ccircle cx='316' cy='78' r='1'/%3E%3Ccircle cx='486' cy='52' r='1.4'/%3E%3Ccircle cx='558' cy='104' r='1'/%3E%3Ccircle cx='636' cy='38' r='1.8'/%3E%3Ccircle cx='712' cy='86' r='1.2'/%3E%3Ccircle cx='762' cy='150' r='1'/%3E%3Ccircle cx='54' cy='128' r='1.1'/%3E%3C/g%3E%3Ccircle cx='400' cy='150' r='86' fill='url(%23s)'/%3E%3Cg fill='%231A0B2E'%3E%3Crect x='300' y='150' width='200' height='5'/%3E%3Crect x='300' y='162' width='200' height='7'/%3E%3Crect x='300' y='177' width='200' height='8'/%3E%3Crect x='300' y='194' width='200' height='9'/%3E%3Crect x='300' y='213' width='200' height='11'/%3E%3C/g%3E%3Cg stroke='%23FF2E97' stroke-opacity='0.45' stroke-width='1.6' fill='none'%3E%3Cpath d='M0 240h800M0 254h800M0 272h800M0 296h800M0 328h800M0 370h800M0 420h800'/%3E%3Cpath d='M400 240 0 420M400 240 80 420M400 240 160 420M400 240 240 420M400 240 320 420M400 240 400 420M400 240 480 420M400 240 560 420M400 240 640 420M400 240 720 420M400 240 800 420'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
+  --online: #3ce6a0;
+  --idle: #ffb020;
+  --dnd: #ff5c7a;
+  --offline: #8a76a8;
+}
+
+[data-theme="synthwave"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #ebddff;
+  --color-surface: rgba(255, 255, 255, 0.78);
+  --color-surface-alt: rgba(255, 255, 255, 0.55);
+  --color-rail: rgba(255, 255, 255, 0.5);
+  --color-panel: rgba(255, 255, 255, 0.55);
+  --color-panel-alt: rgba(255, 255, 255, 0.72);
+  --color-chat: rgba(255, 255, 255, 0.42);
+
+  --color-text: #2a1250;
+  --color-text-muted: #5b4478;
+  --color-border: #c9b6e8;
+  --color-border-strong: #5b21b6;
+
+  --color-primary: #b0005f;
+  --color-primary-hover: #8a0049;
+  --color-on-primary: #ffffff;
+  --color-secondary: #007c8f;
+  --color-accent: #a84a00;
+  --color-on-accent: #ffffff;
+  --color-link: #a8005b;
+  --color-focus: #b0005f;
+
+  --color-success: #0f6b47;
+  --color-warning: #8a4a00;
+  --color-danger: #b0003a;
+  --color-on-danger: #ffffff;
+
+  --color-hover: rgba(90, 33, 182, 0.08);
+  --color-active: rgba(90, 33, 182, 0.15);
+  --color-skeleton: rgba(90, 33, 182, 0.1);
+
+  --color-tab: #c7006e;
+  --color-tab-hover: #a8005b;
+  --color-tab-ink: #ffffff;
+
+  --color-counter-bg: #5b21b6;
+  --color-counter-text: #ffffff;
+  --color-counter-border: #5b21b6;
+
+  --color-bubble-sent: #c7006e;
+  --color-bubble-sent-text: #ffffff;
+  --color-bubble-received: rgba(255, 255, 255, 0.92);
+  --color-bubble-received-text: #2a1250;
+
+  --color-avatar-ink: #ffffff;
+  --color-media-void: #2a1250;
+  --color-media-ink: #ffffff;
+
+  --shape-shadow: 0 10px 30px rgba(91, 33, 182, 0.16);
+  --shape-shadow-raised: 0 22px 54px rgba(91, 33, 182, 0.22);
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: linear-gradient(92deg, #b0005f 0%, #a84a00 60%, #5b21b6 100%);
+  --fx-heading-fill: transparent;
+  --fx-glass-blur: blur(10px);
+  --fx-backdrop: linear-gradient(180deg, #ebddff 0%, #fff0e6 100%);
+  --fx-backdrop-size: 100% 100%;
+  --fx-backdrop-repeat: no-repeat;
+
+  /* Sunrise drive: pale sun, violet floor, no stars. */
+  --fx-texture-emblem: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 420'%3E%3Cg opacity='0.55'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23FFF0E6'/%3E%3Cstop offset='0.45' stop-color='%23FFC9A8'/%3E%3Cstop offset='1' stop-color='%23F2A6C8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='400' cy='150' r='86' fill='url(%23s)'/%3E%3Cg fill='%23EBDDFF'%3E%3Crect x='300' y='150' width='200' height='5'/%3E%3Crect x='300' y='162' width='200' height='7'/%3E%3Crect x='300' y='177' width='200' height='8'/%3E%3Crect x='300' y='194' width='200' height='9'/%3E%3Crect x='300' y='213' width='200' height='11'/%3E%3C/g%3E%3Cg stroke='%235B21B6' stroke-opacity='0.28' stroke-width='1.6' fill='none'%3E%3Cpath d='M0 240h800M0 254h800M0 272h800M0 296h800M0 328h800M0 370h800M0 420h800'/%3E%3Cpath d='M400 240 0 420M400 240 80 420M400 240 160 420M400 240 240 420M400 240 320 420M400 240 400 420M400 240 480 420M400 240 560 420M400 240 640 420M400 240 720 420M400 240 800 420'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
+  --online: #0f6b47;
+  --idle: #8a4a00;
+  --dnd: #b0003a;
+  --offline: #7a6a90;
+}

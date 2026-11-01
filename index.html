@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Maintained by src/theme/apply.ts from the active edition's --color-bg. -->
+    <meta name="theme-color" content="#ffffff" />
+    <!--
+      Strict CSP (docs/02 section 9). No 'unsafe-inline', no 'unsafe-eval', no remote origins.
+      This only works because the app is served from the privileged app:// scheme with real
+      assets on disk: there are zero inline styles in the renderer (see src/ui/VirtualGrid).
+      The theme boot script is an external file for the same reason - inline JS would need a hash.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: __AEGIS_API_ORIGIN__; font-src 'self'; connect-src 'self' __AEGIS_API_ORIGIN__; object-src 'none'; media-src 'self' blob: __AEGIS_API_ORIGIN__; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    />
+    <title>Aegis Shield</title>
+    <!-- Blocking, before the body: resolves the saved theme and mode before first paint. -->
+    <script src="/theme-boot.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

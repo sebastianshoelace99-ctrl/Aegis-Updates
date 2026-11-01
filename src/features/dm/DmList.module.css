@@ -1,0 +1,73 @@
+/*
+ * Only what the channel column has no equivalent for lives here: the filter field, the row's
+ * slightly taller rhythm, and the explanatory note. Panel, header, section labels, rows,
+ * mention pills and unread dots come from `ChannelList.module.css` so the DM space cannot drift
+ * away from the server column in any of the seven editions.
+ */
+
+/* Presence dots sit on the panel, not on the dock. */
+.panel {
+  --avatar-ring: var(--panel);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 8px 8px 0;
+}
+
+.searchGlyph {
+  position: absolute;
+  left: 17px;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 7px 10px 7px 29px;
+  border: var(--border-w) solid var(--line);
+  /*
+   * The shared field token, never a literal radius: a one-line field is a capsule in the editions
+   * that opt into one (Retro's glass bubble) and keeps the theme's normal corner everywhere else.
+   */
+  border-radius: var(--field-radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.searchInput::placeholder {
+  color: var(--muted);
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+
+/* WebKit draws a square cancel button that ignores the capsule radius; the field clears itself. */
+.searchInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* Taller than a channel row: a 20px avatar needs more breathing room than a 16px glyph. */
+.row {
+  gap: 8px;
+  min-height: 34px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.note {
+  margin: 0;
+  padding: 4px 8px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}

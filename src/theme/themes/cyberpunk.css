@@ -1,0 +1,302 @@
+/*
+ * Cyberpunk - a cold, monochrome tactical terminal.
+ *
+ * Two editions of one idea. The dark edition ("terminal") is slate plate on a deeper page edge
+ * with exactly one colour in it: mint, reserved for status lights, active ticks and the focus
+ * ring. The light edition ("blueprint") is the same plate printed on cool grey paper: near-black
+ * outlines, and a selected state that inverts to a solid slate fill.
+ *
+ * This replaced the old yellow/cyan look. Nothing from it survives: no electric-yellow primary,
+ * no cyan secondary, no magenta red, no glow, no clipped corners on small controls. The only
+ * chamfer left is on a header band or a large plate.
+ *
+ * Decoration is CSS only - gradients on the elements and pseudo-elements that already exist. The
+ * palette lives in the two mode blocks; the pattern tokens in the shared block are *recipes* built
+ * from those colour tokens, so a component never repeats a hex value and a mode flip repaints the
+ * stripes, the hatch and the crosshair field with everything else.
+ *
+ * Type: the display face is a squared techno sans (Bahnschrift locally, DIN/Oxanium/Michroma if
+ * installed, Segoe as the last resort), body copy is the bundled Barlow, read-outs are a mono
+ * stack. No webfont is fetched, so `font-src 'self'` keeps working offline.
+ */
+[data-theme="cyberpunk"] {
+  --font-display: "Bahnschrift", "DIN Alternate", "Oxanium", "Michroma", "Segoe UI", sans-serif;
+  --font-body: "Barlow", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
+  --font-heading-style: normal;
+  --font-heading-tracking: 0.16em;
+  --font-heading-transform: uppercase;
+  --font-label-transform: uppercase;
+  --font-heading-weight: 600;
+
+  /* Shape: one pixel, square corners, flat. The chamfer is the only cut and it is opt-in. */
+  --shape-radius: 0px;
+  --shape-radius-sm: 0px;
+  --shape-radius-lg: 0px;
+  --shape-radius-pill: 0px;
+  --shape-radius-round: 0px;
+  --shape-border-width: 1px;
+  --shape-shadow: none;
+  --shape-shadow-raised: 0 24px 60px rgba(0, 0, 0, 0.6);
+  /* Neutralised on purpose: the old look clipped every control. */
+  --shape-clip-card: none;
+  --shape-clip-card-sm: none;
+  --shape-clip-tab: none;
+  --shape-clip-tab-left: none;
+  --shape-bubble-radius: 0px;
+  --shape-bubble-radius-tail: 0px;
+  --shape-bubble-pad: 0;
+  --shape-bubble-align: 0;
+  --focus-offset: -3px;
+
+  /* Framing hardware geometry. */
+  --hud-chamfer: 12px;
+  --hud-border-w: 1px;
+  --hud-stripe-period: 10px;
+
+  /*
+   * Pattern recipes. Each is a single background layer so a consumer can stack it without the
+   * repeat/size lists shifting under it (a two-layer token would desynchronise the shorthand in
+   * the modules that combine it with an emblem layer).
+   */
+  --fx-stripe-pattern: repeating-linear-gradient(
+    45deg,
+    var(--stripe-color-a) 0 2px,
+    var(--stripe-color-b) 2px var(--hud-stripe-period)
+  );
+  --fx-hatch-pattern: repeating-linear-gradient(
+    45deg,
+    var(--hatch-color) 0 1.5px,
+    var(--hatch-color-off) 1.5px 5px
+  );
+  --fx-hatch-pattern-invert: repeating-linear-gradient(
+    45deg,
+    var(--hatch-color-invert) 0 1.5px,
+    var(--hatch-color-off) 1.5px 5px
+  );
+
+  /* Effects: nothing glows; the only motion is a step-fade and a slow status blink. */
+  --fx-texture-emblem: none;
+  --fx-heading-shadow: none;
+  --fx-heading-gradient: none;
+  --fx-heading-fill: currentColor;
+  --fx-panel-image: none;
+  --fx-button-sheen: none;
+  --fx-button-sheen-opacity: 0;
+  --fx-glass-blur: none;
+  --fx-bubble-gloss: none;
+  --fx-bubble-gloss-self: none;
+  --fx-bubble-shadow: none;
+  --fx-bubble-shadow-self: none;
+
+  --fx-flicker-duration: 120ms;
+  --fx-status-blink-duration: 2600ms;
+  /* 0 switches the HUD frame off without touching a rule. */
+  --fx-hud-frame-opacity: 1;
+}
+
+/* Dark edition: "terminal" ---------------------------------------------------- */
+
+[data-theme="cyberpunk"][data-mode="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #23272c;
+  --color-surface: #2b3036;
+  --color-surface-alt: #31363d;
+  --color-rail: #1e2227;
+  --color-panel: #262b31;
+  --color-panel-alt: #2b3036;
+  --color-chat: #23272c;
+  /* The page edge behind the 10px bezel the HUD frame is drawn into. */
+  --hud-page-edge: #1a1d21;
+  /* Header bands sit a step *below* the field, so the band reads as hardware. */
+  --hud-band: #1e2227;
+
+  --color-text: #e6e9ec;
+  /* Brightened from the reference's #8B939A, which measures 4.18:1 on a panel. */
+  --color-text-muted: #9aa2a9;
+  /*
+   * Two outline weights, and the reason they differ from the reference:
+   *   --hud-line      is the bright 1px edge a plate is *drawn* with.
+   *   --hud-line-dim  is decorative only (ticks, rails, hatching).
+   *   --color-border  is what interactive controls use, so it is brightened until it clears
+   *                   3:1 against a panel (#6E767E measured 2.85:1 there).
+   */
+  --hud-line: #c9ced3;
+  --hud-line-dim: #5a6168;
+  --color-border: #757d85;
+  --color-border-strong: #c9ced3;
+
+  /* The selected / primary fill is solid pale grey; the ink on it is the page edge. */
+  --color-primary: #e8eaed;
+  --color-primary-hover: #f6f7f9;
+  --color-on-primary: #1a1d21;
+  --color-secondary: #9aa2a9;
+  --selected-bg: #e8eaed;
+  --selected-text: #1a1d21;
+
+  /* Mint is the only colour, and it is never decorative-only: it marks live state. */
+  --color-accent: #2ee6b6;
+  --color-on-accent: #062a21;
+  --status-accent: #2ee6b6;
+  --color-link: #2ee6b6;
+  --color-focus: #2ee6b6;
+
+  --color-success: #2ee6b6;
+  --color-warning: #f5b942;
+  --color-danger: #ff5a6a;
+  --color-on-danger: #1a0a0d;
+
+  --color-hover: rgba(232, 234, 237, 0.07);
+  --color-active: rgba(232, 234, 237, 0.14);
+  --color-skeleton: rgba(232, 234, 237, 0.09);
+
+  --color-tab: #e8eaed;
+  --color-tab-hover: #f6f7f9;
+  --color-tab-ink: #1a1d21;
+
+  --color-counter-bg: #e8eaed;
+  --color-counter-text: #1a1d21;
+  --color-counter-border: #c9ced3;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #e6e9ec;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #e6e9ec;
+
+  --color-avatar-ink: #1a1d21;
+  /*
+   * Avatar and server-icon plates. `base.css` ships a warm, hue-coded palette; a cold terminal
+   * tags things by brightness instead, so the eight slots become a value ramp with mint as the
+   * one colour. Every step is light enough to carry the dark ink above (worst pair prints 6.07:1).
+   */
+  --palette-0: #eef0f2;
+  --palette-1: #d5d9dd;
+  --palette-2: #bcc3c9;
+  --palette-3: #a6aeb5;
+  --palette-4: #2ee6b6;
+  --palette-5: #e2e5e8;
+  --palette-6: #c9ced3;
+  --palette-7: #949ca3;
+  --color-media-void: #0e1012;
+  --color-media-ink: #e6e9ec;
+
+  /* Textures. Low contrast by design: these are surfaces, not decoration you read. */
+  --stripe-color-a: rgba(201, 206, 211, 0.09);
+  --stripe-color-b: rgba(201, 206, 211, 0);
+  --hatch-color: rgba(201, 206, 211, 0.3);
+  --hatch-color-invert: rgba(26, 29, 33, 0.34);
+  --hatch-color-off: transparent;
+  --dot-line: rgba(201, 206, 211, 0.1);
+
+  /* One faint crosshair per 48px tile: the "+" marks on the field. */
+  --fx-texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 20.5v7M20.5 24h7' stroke='%23C9CED3' stroke-opacity='0.1' fill='none'/%3E%3C/svg%3E");
+  /* A single 1px line every 3px, at 12%: present when looked for, invisible when reading. */
+  --fx-overlay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='3' height='3'%3E%3Crect width='3' height='1' fill='%23000000' fill-opacity='0.5'/%3E%3C/svg%3E");
+  --fx-overlay-opacity: 0.12;
+  --fx-overlay-blend: normal;
+
+  --fx-frame-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M7.5 2.5 4 6l3.5 3.5' fill='none' stroke='%232EE6B6' stroke-width='1.2'/%3E%3C/svg%3E");
+  --fx-frame-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M4.5 2.5 8 6l-3.5 3.5' fill='none' stroke='%232EE6B6' stroke-width='1.2'/%3E%3C/svg%3E");
+
+  --online: #2ee6b6;
+  --idle: #f5b942;
+  --dnd: #ff5a6a;
+  --offline: #7a828a;
+}
+
+/* Light edition: "blueprint" -------------------------------------------------- */
+
+[data-theme="cyberpunk"][data-mode="light"] {
+  color-scheme: light;
+
+  --color-bg: #d5d9dd;
+  --color-surface: #e4e7ea;
+  --color-surface-alt: #edeff1;
+  --color-rail: #cbd0d5;
+  --color-panel: #e0e4e7;
+  --color-panel-alt: #e9ecee;
+  --color-chat: #e7eaec;
+  --hud-page-edge: #c2c7cc;
+  --hud-band: #c9ced3;
+
+  --color-text: #1a1d21;
+  --color-text-muted: #4f565d;
+  --hud-line: #1f2328;
+  /* Decorative only; interactive outlines use --color-border below. */
+  --hud-line-dim: #6b7379;
+  --color-border: #545c63;
+  --color-border-strong: #1f2328;
+
+  /* Inverted selection: a solid slate plate with paper-coloured ink. */
+  --color-primary: #23272c;
+  --color-primary-hover: #12161a;
+  --color-on-primary: #f2f5f7;
+  --color-secondary: #4f565d;
+  --selected-bg: #23272c;
+  --selected-text: #f2f5f7;
+
+  /* #0A8F72 measures 2.81:1 here; the reference's own note was to darken it until it passes. */
+  --color-accent: #06604d;
+  --color-on-accent: #ffffff;
+  --status-accent: #06604d;
+  --color-link: #06604d;
+  --color-focus: #06604d;
+
+  --color-success: #06604d;
+  --color-warning: #6b4a00;
+  --color-danger: #a81e2c;
+  --color-on-danger: #ffffff;
+
+  --color-hover: rgba(31, 35, 40, 0.06);
+  --color-active: rgba(31, 35, 40, 0.12);
+  --color-skeleton: rgba(31, 35, 40, 0.08);
+
+  --color-tab: #23272c;
+  --color-tab-hover: #12161a;
+  --color-tab-ink: #f2f5f7;
+
+  --color-counter-bg: #23272c;
+  --color-counter-text: #f2f5f7;
+  --color-counter-border: #1f2328;
+
+  --color-bubble-sent: transparent;
+  --color-bubble-sent-text: #1a1d21;
+  --color-bubble-received: transparent;
+  --color-bubble-received-text: #1a1d21;
+
+  --color-avatar-ink: #ffffff;
+  /* The same value ramp printed on paper: dark steps, so the white initials stay legible (6.31:1). */
+  --palette-0: #23272c;
+  --palette-1: #343b42;
+  --palette-2: #414850;
+  --palette-3: #4e565d;
+  --palette-4: #06604d;
+  --palette-5: #2b3036;
+  --palette-6: #3a4148;
+  --palette-7: #586169;
+  --color-media-void: #101317;
+  --color-media-ink: #f2f5f7;
+
+  --stripe-color-a: rgba(31, 35, 40, 0.1);
+  --stripe-color-b: rgba(31, 35, 40, 0);
+  --hatch-color: rgba(31, 35, 40, 0.34);
+  --hatch-color-invert: rgba(242, 245, 247, 0.5);
+  --hatch-color-off: transparent;
+  --dot-line: rgba(31, 35, 40, 0.09);
+
+  --fx-texture-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 20.5v7M20.5 24h7' stroke='%231F2328' stroke-opacity='0.09' fill='none'/%3E%3C/svg%3E");
+  /* No scanlines on paper. */
+  --fx-overlay: none;
+  --fx-overlay-opacity: 0;
+
+  --fx-frame-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M7.5 2.5 4 6l3.5 3.5' fill='none' stroke='%2306604D' stroke-width='1.2'/%3E%3C/svg%3E");
+  --fx-frame-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M4.5 2.5 8 6l-3.5 3.5' fill='none' stroke='%2306604D' stroke-width='1.2'/%3E%3C/svg%3E");
+
+  --shape-shadow-raised: 0 18px 44px rgba(20, 26, 32, 0.18);
+
+  --online: #06604d;
+  --idle: #6b4a00;
+  --dnd: #a81e2c;
+  --offline: #5f676e;
+}

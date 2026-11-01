@@ -1,0 +1,191 @@
+.avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--radius-round);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--avatar-ink);
+  user-select: none;
+  /* Default ring for the presence dot; overridden by whichever surface hosts the avatar. */
+  --avatar-ring: var(--chat);
+}
+
+.avatar[data-size="sm"] {
+  width: 20px;
+  height: 20px;
+  font-size: 9px;
+}
+
+.avatar[data-size="md"] {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.avatar[data-size="lg"] {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+/* Only the server-icon preview uses xl; it is sized to read as an icon, not a portrait. */
+.avatar[data-size="xl"] {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+}
+
+/* The palette itself lives in tokens.css so swatches and avatars cannot drift apart. */
+.avatar[data-accent="0"] {
+  background: var(--palette-0);
+}
+.avatar[data-accent="1"] {
+  background: var(--palette-1);
+}
+.avatar[data-accent="2"] {
+  background: var(--palette-2);
+}
+.avatar[data-accent="3"] {
+  background: var(--palette-3);
+}
+.avatar[data-accent="4"] {
+  background: var(--palette-4);
+}
+.avatar[data-accent="5"] {
+  background: var(--palette-5);
+}
+.avatar[data-accent="6"] {
+  background: var(--palette-6);
+}
+.avatar[data-accent="7"] {
+  background: var(--palette-7);
+}
+
+/* A stored profile picture paints over the initials; the span still owns the clipping. */
+.image {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  user-select: none;
+}
+
+/* The presence dot must sit above the image, not behind it. */
+.avatar[data-image="true"] .dot {
+  z-index: 1;
+}
+
+.dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: var(--radius-round);
+  border: 2.5px solid var(--avatar-ring);
+  background: var(--offline);
+  box-sizing: content-box;
+}
+
+.dot[data-presence="online"] {
+  background: var(--online);
+}
+
+.dot[data-presence="idle"] {
+  background: var(--idle);
+}
+
+.dot[data-presence="dnd"] {
+  background: var(--dnd);
+}
+
+.dot[data-presence="offline"] {
+  background: var(--offline);
+}
+
+/* Guild icons are squircles, member avatars are circles - same palette, different silhouette. */
+.avatar[data-shape="square"] {
+  border-radius: var(--radius-lg);
+  transition: border-radius 120ms ease;
+}
+
+.avatar[data-shape="square"][data-size="lg"] {
+  border-radius: var(--radius-lg);
+}
+
+/* Compact display shrinks every medium avatar, which is exactly where the feed's space goes. */
+:global(html[data-density="compact"]) .avatar[data-size="md"] {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+/* ===== Item-card theme layer (visual only) ===== */
+
+.avatar {
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-style: var(--type-heading-style);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Guild icons are chamfered plates; member portraits stay square so the status chip is not clipped. */
+.avatar[data-shape="square"] {
+  clip-path: var(--clip-card-sm);
+}
+
+.image {
+  border-radius: 0;
+}
+
+/* Presence becomes a hard-edged diamond chip, not a soft dot. */
+.dot {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  box-shadow: 0 0 0 2px var(--avatar-ring);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+/*
+ * Avatar decorations.
+ *
+ * Discord sells these as "avatar decorations"; here they are a free index. `outline` is used rather
+ * than `border` on purpose: it paints outside the box and is therefore not clipped by the avatar's
+ * own `overflow: hidden`, so a ring cannot be cropped by the picture it decorates. Nothing animates,
+ * so a reduced-motion user loses nothing.
+ */
+.avatar[data-decoration="1"] {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.avatar[data-decoration="2"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.avatar[data-decoration="3"] {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+}
+
+.avatar[data-decoration="4"] {
+  outline: 3px double var(--accent);
+  outline-offset: 2px;
+}
+
+.avatar[data-decoration="5"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 12px -2px var(--accent);
+}
+
+.avatar[data-decoration="6"] {
+  box-shadow:
+    inset 0 0 0 3px var(--surface-2),
+    inset 0 0 0 5px var(--accent);
+}
+
