@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   createGuildInvite,
+  fetchModerationAudit,
+  fetchGuildBackup,
   listGuildInvites,
+  moderateMember,
   revokeGuildInvite,
   type InviteSummary,
 } from "../../api/backend";
@@ -11,7 +14,11 @@ import {
   serverInitials,
   serverNameSchema,
 } from "../../api/createServer";
-import { deleteGuild as deleteLiveGuild, updateGuild } from "../../api/liveWorkspace";
+import {
+  deleteGuild as deleteLiveGuild,
+  replaceWorkspace,
+  updateGuild,
+} from "../../api/liveWorkspace";
 import {
   NOTIFICATION_COPY,
   NOTIFICATION_LEVELS,
@@ -34,6 +41,16 @@ import {
   type Member,
   type Workspace,
 } from "../../api/workspace";
+import {
+  GUILD_PERMISSIONS,
+  hasGuildPermission,
+  type GuildPermission,
+} from "../../../shared/permissions";
+import {
+  moderationActionSchema,
+  type ModerationAction,
+  type ModerationAuditEntry,
+} from "../../../shared/moderation";
 import { useLiveWorkspace } from "../../state/useLiveWorkspace";
 import { getSelfId } from "../../state/identity";
 import { useUiStore } from "../../state/uiStore";
@@ -63,6 +80,22 @@ import styles from "./ServerSettings.module.css";
  */
 
 const ROLE_COLORS = Array.from({ length: 16 }, (_, index) => index);
+const PERMISSION_LABELS: Record<GuildPermission, string> = {
+  view_channel: "View channel",
+  read_history: "Read message history",
+  send_messages: "Send messages",
+  add_reactions: "Add reactions",
+  connect_voice: "Connect to voice",
+  speak: "Speak",
+  share_video: "Share video",
+  share_screen: "Share screen",
+  manage_channels: "Manage channels",
+  manage_roles: "Manage roles",
+  manage_invites: "Manage invites",
+  moderate_members: "Moderate members",
+  manage_guild: "Manage server",
+  export_data: "Export server data",
+};
 
 export function ServerSettingsModal(): React.JSX.Element | null {
   const open = useUiStore((state) => state.serverSettingsOpen);
@@ -81,9 +114,10 @@ export function ServerSettingsModal(): React.JSX.Element | null {
 type DialogProps = { guild: Guild; live: Workspace; onClose: () => void };
 
 function ServerSettingsDialog({ guild, live, onClose }: DialogProps): React.JSX.Element {
-  const [tab, setTab] = useState<"overview" | "notifications" | "roles">("overview");
+  const [tab, setTab] = useState<"overview" | "notifications" | "roles" | "moderation">("overview");
   const { ref, onBackdrop } = useDialog(onClose);
   const members = guildMembers(live, guild);
+  const canModerate = hasGuildPermission(guild, getSelfId(), "moderate_members");
   const openChannel = useWorkspaceStore((state) => state.openChannel);
   const openHome = useWorkspaceStore((state) => state.openHome);
 
@@ -151,6 +185,16 @@ function ServerSettingsDialog({ guild, live, onClose }: DialogProps): React.JSX.
             >
               Roles
             </button>
+            {canModerate ? (
+              <button
+                type="button"
+                className={styles.navButton}
+                data-active={tab === "moderation"}
+                onClick={() => setTab("moderation")}
+              >
+                Moderation
+              </button>
+            ) : null}
           </nav>
 
           <div className={styles.content}>
@@ -159,6 +203,9 @@ function ServerSettingsDialog({ guild, live, onClose }: DialogProps): React.JSX.
             ) : null}
             {tab === "notifications" ? <Notifications guild={guild} /> : null}
             {tab === "roles" ? <Roles guild={guild} members={members} /> : null}
+            {tab === "moderation" && canModerate ? (
+              <ModerationPanel guild={guild} members={live.members} />
+            ) : null}
           </div>
         </div>
       </div>
@@ -374,8 +421,54 @@ function Overview({
       {guild.ownerId === getSelfId() ? (
         <>
           <InviteLinks guildId={guild.id} />
+          <ExportServer guild={guild} />
           <DeleteServer guild={guild} onDeleted={onDeleted} />
         </>
+      ) : null}
+    </section>
+  );
+}
+
+function ExportServer({ guild }: { guild: Guild }): React.JSX.Element {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const download = async (): Promise<void> => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const backup = await fetchGuildBackup(guild.id);
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `aegis-${guild.id}-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "The server backup could not be exported.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className={styles.deleteServer} aria-labelledby="export-server-heading">
+      <h3 id="export-server-heading" className={styles.sectionTitle}>
+        Server backup
+      </h3>
+      <p className={shell.sectionBody}>
+        Download server settings, members and message history as JSON. Uploaded file bytes are not
+        included; their metadata remains in the export.
+      </p>
+      <button type="button" className={shell.ghost} onClick={() => void download()} disabled={busy}>
+        {busy ? "Preparing backup…" : "Download server backup"}
+      </button>
+      {error ? (
+        <p className={shell.error} role="alert">
+          {error}
+        </p>
       ) : null}
     </section>
   );
@@ -730,6 +823,194 @@ function Notifications({ guild }: { guild: Guild }): React.JSX.Element {
   );
 }
 
+function ModerationPanel({
+  guild,
+  members,
+}: {
+  guild: Guild;
+  members: Member[];
+}): React.JSX.Element {
+  const [action, setAction] = useState<ModerationAction>("timeout");
+  const [targetId, setTargetId] = useState("");
+  const [reason, setReason] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState(30);
+  const [entries, setEntries] = useState<ModerationAuditEntry[]>([]);
+  const [bannedMemberIds, setBannedMemberIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const candidates =
+    action === "unban"
+      ? members.filter(
+          (member) =>
+            bannedMemberIds.includes(member.id) &&
+            member.id !== getSelfId() &&
+            member.id !== guild.ownerId,
+        )
+      : members.filter(
+          (member) =>
+            guild.memberIds.includes(member.id) &&
+            member.id !== getSelfId() &&
+            member.id !== guild.ownerId,
+        );
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    void fetchModerationAudit(guild.id)
+      .then((next) => {
+        if (active) {
+          setEntries(next.entries);
+          setBannedMemberIds(next.bannedMemberIds);
+        }
+      })
+      .catch((failure: unknown) => {
+        if (active) setError(failure instanceof Error ? failure.message : "Could not load the audit log.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [guild.id]);
+
+  useEffect(() => {
+    if (!candidates.some((member) => member.id === targetId)) {
+      setTargetId(candidates[0]?.id ?? "");
+    }
+  }, [action, candidates, targetId]);
+
+  const submit = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault();
+    if (busy || !targetId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await moderateMember({
+        guildId: guild.id,
+        targetId,
+        action,
+        reason: reason.trim(),
+        ...(action === "timeout" ? { durationMinutes } : {}),
+      });
+      replaceWorkspace(result.workspace);
+      setEntries((previous) => [result.entry, ...previous].slice(0, 100));
+      setBannedMemberIds((previous) =>
+        action === "ban"
+          ? [...new Set([...previous, targetId])]
+          : action === "unban"
+            ? previous.filter((memberId) => memberId !== targetId)
+            : previous,
+      );
+      setReason("");
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "The moderation action failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const nameOf = (memberId: string): string =>
+    members.find((member) => member.id === memberId)?.name ?? memberId;
+
+  return (
+    <section className={styles.section} aria-labelledby="moderation-heading">
+      <h3 id="moderation-heading" className={styles.sectionTitle}>
+        Moderation
+      </h3>
+      <p className={shell.sectionBody}>
+        Timeouts block sending and voice; kicks remove membership; bans also block invite redemption.
+        Actions and reasons are recorded in the server audit log.
+      </p>
+      <form className={styles.moderationForm} onSubmit={(event) => void submit(event)}>
+        <label className={shell.field}>
+          <span className={shell.fieldLabel}>Action</span>
+          <select
+            className={shell.select}
+            value={action}
+            onChange={(event) => {
+              const next = moderationActionSchema.safeParse(event.target.value);
+              if (next.success) setAction(next.data);
+            }}
+          >
+            <option value="timeout">Timeout</option>
+            <option value="remove_timeout">Remove timeout</option>
+            <option value="kick">Kick from server</option>
+            <option value="ban">Ban from server</option>
+            <option value="unban">Unban</option>
+          </select>
+        </label>
+        <label className={shell.field}>
+          <span className={shell.fieldLabel}>Member</span>
+          <select
+            className={shell.select}
+            value={targetId}
+            onChange={(event) => setTargetId(event.target.value)}
+            disabled={candidates.length === 0}
+          >
+            {candidates.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name} {guild.memberIds.includes(member.id) ? "" : "(not in server)"}
+              </option>
+            ))}
+          </select>
+        </label>
+        {action === "timeout" ? (
+          <label className={shell.field}>
+            <span className={shell.fieldLabel}>Duration (minutes, max 40,320)</span>
+            <input
+              className={shell.input}
+              type="number"
+              min={1}
+              max={40_320}
+              value={durationMinutes}
+              onChange={(event) => setDurationMinutes(Number(event.target.value))}
+            />
+          </label>
+        ) : null}
+        <label className={shell.field}>
+          <span className={shell.fieldLabel}>Reason (optional)</span>
+          <input
+            className={shell.input}
+            maxLength={500}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+          />
+        </label>
+        <button type="submit" className={shell.primary} disabled={busy || !targetId}>
+          {busy ? "Applying…" : "Apply moderation action"}
+        </button>
+      </form>
+      {error ? (
+        <p className={shell.error} role="alert">
+          {error}
+        </p>
+      ) : null}
+      <h4 className={styles.membersTitle}>Recent audit history</h4>
+      {loading ? (
+        <p className={styles.empty}>Loading moderation history…</p>
+      ) : entries.length === 0 ? (
+        <p className={styles.empty}>No moderation actions recorded.</p>
+      ) : (
+        <ol className={styles.auditList}>
+          {entries.map((entry) => (
+            <li key={entry.id} className={styles.auditEntry}>
+              <strong>{entry.action.replaceAll("_", " ")}</strong>
+              <span>
+                {nameOf(entry.targetId)} · by {nameOf(entry.actorId)}
+              </span>
+              {entry.reason ? <span>{entry.reason}</span> : null}
+              <time dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString()}</time>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function Roles({ guild, members }: { guild: Guild; members: Member[] }): React.JSX.Element {
   const ordered = [...guild.roles].sort(
     (a, b) => b.position - a.position || a.name.localeCompare(b.name),
@@ -765,7 +1046,7 @@ function Roles({ guild, members }: { guild: Guild; members: Member[] }): React.J
     const position = guild.roles.reduce((max, role) => Math.max(max, role.position), 0) + 1;
     updateGuild({
       ...guild,
-      roles: [...guild.roles, { id, name, color: 0, hoist: true, position }],
+      roles: [...guild.roles, { id, name, color: 0, hoist: true, position, permissions: [] }],
     });
     setSelectedRoleId(id);
     setNameDraft("");
@@ -866,6 +1147,7 @@ function Roles({ guild, members }: { guild: Guild; members: Member[] }): React.J
       {selected ? (
         <MemberAssignments guild={guild} role={selected} members={members} />
       ) : null}
+      {selected ? <ChannelOverrides guild={guild} role={selected} /> : null}
     </section>
   );
 }
@@ -901,6 +1183,7 @@ function RoleEditor({ role, count, onPatch, onDelete }: RoleEditorProps): React.
           value={name}
           maxLength={32}
           data-testid="role-name"
+          disabled={role.id === "owner"}
           onChange={(event) => {
             setName(event.target.value);
             setError(null);
@@ -919,7 +1202,13 @@ function RoleEditor({ role, count, onPatch, onDelete }: RoleEditorProps): React.
         </span>
       </label>
 
-      <button type="button" className={shell.ghost} onClick={saveName} data-testid="save-role-name">
+      <button
+        type="button"
+        className={shell.ghost}
+        onClick={saveName}
+        disabled={role.id === "owner"}
+        data-testid="save-role-name"
+      >
         Save name
       </button>
 
@@ -933,6 +1222,7 @@ function RoleEditor({ role, count, onPatch, onDelete }: RoleEditorProps): React.
               className={styles.colorButton}
               data-color={color}
               data-selected={role.color === color}
+              disabled={role.id === "owner"}
               onClick={() => onPatch({ color })}
               aria-label={`Role colour ${color + 1}`}
               aria-pressed={role.color === color}
@@ -946,6 +1236,7 @@ function RoleEditor({ role, count, onPatch, onDelete }: RoleEditorProps): React.
           type="checkbox"
           className={styles.checkbox}
           checked={role.hoist}
+          disabled={role.id === "owner"}
           onChange={(event) => onPatch({ hoist: event.target.checked })}
         />
         <span>
@@ -954,13 +1245,125 @@ function RoleEditor({ role, count, onPatch, onDelete }: RoleEditorProps): React.
         </span>
       </label>
 
+      <fieldset className={styles.colorField}>
+        <legend className={shell.fieldLabel}>Server permissions</legend>
+        <p className={shell.hint}>
+          Server management grants all permissions. The creator-only Owner role cannot be changed.
+        </p>
+        {GUILD_PERMISSIONS.map((permission) => (
+          <label key={permission} className={styles.checkRow}>
+            <input
+              type="checkbox"
+              className={styles.checkbox}
+              checked={role.permissions.includes(permission)}
+              disabled={role.id === "owner"}
+              onChange={(event) => {
+                const permissions = new Set(role.permissions);
+                if (event.target.checked) permissions.add(permission);
+                else permissions.delete(permission);
+                onPatch({ permissions: [...permissions] });
+              }}
+            />
+            <span>
+              <strong>{PERMISSION_LABELS[permission]}</strong>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+
       <div className={styles.editorFooter}>
         <span className={styles.countBadge}>
           <CrownGlyph /> {count} {count === 1 ? "member" : "members"}
         </span>
-        <button type="button" className={styles.danger} onClick={onDelete} data-testid="delete-role">
+        <button
+          type="button"
+          className={styles.danger}
+          onClick={onDelete}
+          disabled={role.id === "owner"}
+          data-testid="delete-role"
+        >
           Delete role
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ChannelOverrides({ guild, role }: { guild: Guild; role: GuildRole }): React.JSX.Element {
+  const [channelId, setChannelId] = useState(guild.channels[0]?.id ?? "");
+  const channel = guild.channels.find((entry) => entry.id === channelId);
+  if (!channel) return <p className={styles.empty}>No channels available for permission rules.</p>;
+
+  const current = channel.permissionOverwrites[role.id] ?? { allow: [], deny: [] };
+  const patchPermission = (permission: GuildPermission, value: string): void => {
+    const allow = new Set(current.allow);
+    const deny = new Set(current.deny);
+    allow.delete(permission);
+    deny.delete(permission);
+    if (value === "allow") allow.add(permission);
+    if (value === "deny") deny.add(permission);
+
+    const permissionOverwrites = { ...channel.permissionOverwrites };
+    if (allow.size === 0 && deny.size === 0) {
+      delete permissionOverwrites[role.id];
+    } else {
+      permissionOverwrites[role.id] = { allow: [...allow], deny: [...deny] };
+    }
+
+    updateGuild({
+      ...guild,
+      channels: guild.channels.map((entry) =>
+        entry.id === channel.id ? { ...entry, permissionOverwrites } : entry,
+      ),
+    });
+  };
+
+  return (
+    <div className={styles.members} aria-labelledby="channel-permissions-heading">
+      <h4 id="channel-permissions-heading" className={styles.membersTitle}>
+        Channel overrides · {role.name}
+      </h4>
+      <label className={shell.field}>
+        <span className={shell.fieldLabel}>Channel</span>
+        <select
+          className={shell.select}
+          value={channelId}
+          onChange={(event) => setChannelId(event.target.value)}
+        >
+          {guild.channels.map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {entry.kind === "voice" ? "🔊" : "#"} {entry.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className={styles.membersHint}>
+        Overrides apply to members with this role. An allowed role permission takes precedence over
+        a denial from another role.
+      </p>
+      <div className={styles.memberGrid}>
+        {GUILD_PERMISSIONS.map((permission) => {
+          const value = current.allow.includes(permission)
+            ? "allow"
+            : current.deny.includes(permission)
+              ? "deny"
+              : "inherit";
+          return (
+            <label key={permission} className={styles.memberRow}>
+              <span className={styles.memberName}>{PERMISSION_LABELS[permission]}</span>
+              <select
+                className={shell.select}
+                value={value}
+                aria-label={`${PERMISSION_LABELS[permission]} in ${channel.name}`}
+                onChange={(event) => patchPermission(permission, event.target.value)}
+              >
+                <option value="inherit">Use role permission</option>
+                <option value="allow">Allow</option>
+                <option value="deny">Deny</option>
+              </select>
+            </label>
+          );
+        })}
       </div>
     </div>
   );
@@ -994,6 +1397,7 @@ function MemberAssignments({
                 type="checkbox"
                 className={styles.checkbox}
                 checked={assigned}
+                disabled={role.id === "owner"}
                 aria-label={`${assigned ? "Remove" : "Add"} ${role.name} for ${member.name}`}
                 onChange={(event) =>
                   updateGuild(

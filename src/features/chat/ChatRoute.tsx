@@ -56,6 +56,8 @@ export function ChatRoute(): React.JSX.Element {
   const draft = useWorkspaceStore((state) => state.drafts[state.channelId] ?? "");
   const setDraft = useWorkspaceStore((state) => state.setDraft);
   const markRead = useWorkspaceStore((state) => state.markRead);
+  const jumpToMessageId = useWorkspaceStore((state) => state.jumpToMessageId);
+  const clearJumpToMessage = useWorkspaceStore((state) => state.clearJumpToMessage);
   const newSince = useWorkspaceStore(
     (state) => state.previousReadAt[state.channelId] ?? state.read[state.channelId]?.lastReadAt,
   );
@@ -152,6 +154,8 @@ export function ChatRoute(): React.JSX.Element {
       <MessageFeed
         channelId={channelId}
         messages={messages}
+        jumpToMessageId={jumpToMessageId}
+        onJumpHandled={clearJumpToMessage}
         pending={pending}
         isPending={query.isPending}
         error={query.isError ? query.error : null}

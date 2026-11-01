@@ -157,6 +157,7 @@
 
 .selfTile,
 .cameraTile,
+.remoteTile,
 .emptyTile {
   position: relative;
   display: flex;
@@ -176,6 +177,17 @@
 .cameraTile {
   padding: 0;
   background: var(--media-void);
+}
+
+.remoteTile {
+  position: relative;
+  background: var(--media-void);
+}
+
+.remoteTile .tileLabel {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
 }
 
 .cameraTile .tileLabel {
@@ -694,4 +706,3 @@
   outline: 2px solid var(--accent-hot);
   outline-offset: -2px;
 }
-

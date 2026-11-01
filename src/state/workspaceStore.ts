@@ -35,6 +35,7 @@ export type WorkspaceState = {
   typing: Record<string, string[]>;
   /** Realtime overrides laid over the roster's initial presence. */
   presence: Record<string, Presence>;
+  jumpToMessageId: string | null;
   /**
    * The marker each channel had when it was last opened. The feed draws its "new messages"
    * divider from this, because `read` has already been advanced by the time it renders.
@@ -48,7 +49,8 @@ export type WorkspaceState = {
    */
   home: boolean;
 
-  openChannel: (channelId: string, at?: string) => void;
+  openChannel: (channelId: string, at?: string, jumpToMessageId?: string) => void;
+  clearJumpToMessage: () => void;
   openHome: () => void;
   markRead: (channelId: string, at: string) => void;
   receive: (channelId: string, at: string, mentions: number) => void;
@@ -96,11 +98,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   drafts: {},
   typing: {},
   presence: {},
+  jumpToMessageId: null,
   previousReadAt: {},
   memberListOpen: true,
   home: false,
 
-  openChannel: (channelId, at = new Date().toISOString()) => {
+  openChannel: (channelId, at = new Date().toISOString(), jumpToMessageId = undefined) => {
     /*
      * Validated against the live graph: a server created in this window is navigable immediately.
      * A DM is validated the same way but against the roster instead of the graph, so a stale or
@@ -112,6 +115,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       const known = state.read[channelId];
       return {
         channelId,
+        jumpToMessageId: jumpToMessageId ?? null,
         home: guild === undefined,
         // A DM belongs to no server, so the rail keeps pointing at the server you came from.
         guildId: guild ? guild.id : state.guildId,
@@ -125,6 +129,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       };
     });
   },
+
+  clearJumpToMessage: () => set({ jumpToMessageId: null }),
 
   openHome: () => {
     // The open conversation is left alone: coming back to the DM space should land on the last

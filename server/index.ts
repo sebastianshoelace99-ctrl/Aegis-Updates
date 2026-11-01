@@ -180,6 +180,7 @@ const server = createServer(
     store,
     bus,
     apiKey: config.apiKey,
+    iceServers: config.iceServers,
     uploads,
     guard,
     adminKey: config.abuse.adminKey,

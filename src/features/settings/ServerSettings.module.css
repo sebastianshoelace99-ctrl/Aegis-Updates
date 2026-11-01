@@ -928,3 +928,43 @@
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
+
+.moderationForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: var(--border-w) solid var(--line);
+}
+
+.moderationForm > button {
+  align-self: end;
+}
+
+.auditList {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auditEntry {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: var(--border-w) solid var(--line);
+  background: var(--panel);
+  font-size: 12px;
+}
+
+.auditEntry span,
+.auditEntry time {
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .moderationForm {
+    grid-template-columns: 1fr;
+  }
+}

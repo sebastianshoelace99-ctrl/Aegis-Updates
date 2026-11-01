@@ -582,6 +582,231 @@ describe("sessions as identity", () => {
     expect(repeated.status).toBe(404);
   });
 
+  it("authorizes voice joins and signaling and caps peer calls at six members", async () => {
+    const app = harness();
+    const owner = {
+      id: "voice-owner",
+      name: "Voice Owner",
+      handle: "voice-owner",
+      role: "artist" as const,
+      presence: "online" as const,
+      accent: 0,
+    };
+    const { guild } = await app.store.createGuild({
+      name: "Voice Test",
+      ownerId: owner.id,
+      ownerName: owner.name,
+      ownerHandle: owner.handle,
+      accent: owner.accent,
+      templateId: "friends",
+    });
+    const voiceChannel = guild.channels.find((channel) => channel.kind === "voice");
+    const textChannel = guild.channels.find((channel) => channel.kind === "text");
+    expect(voiceChannel).toBeDefined();
+    expect(textChannel).toBeDefined();
+
+    const inviteHash = "a".repeat(64);
+    await app.store.createInvite(
+      guild.id,
+      owner.id,
+      inviteHash,
+      new Date(Date.now() + 60_000).toISOString(),
+    );
+    const participants = [owner];
+    for (let index = 1; index < 7; index += 1) {
+      const member = {
+        id: `voice-member-${index}`,
+        name: `Voice Member ${index}`,
+        handle: `voice-member-${index}`,
+        role: "artist" as const,
+        presence: "online" as const,
+        accent: 0,
+      };
+      await app.store.redeemInvite(inviteHash, member);
+      participants.push(member);
+    }
+
+    const join = async (memberId: string, channelId = voiceChannel!.id) =>
+      app.call({
+        method: "POST",
+        url: "/api/voice/join",
+        headers: { "x-aegis-user": memberId },
+        body: { channelId },
+      });
+
+    const first = await join(participants[0]!.id);
+    const second = await join(participants[1]!.id);
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(second.json().peers).toContain(participants[0]!.id);
+
+    const signal = await app.call({
+      method: "POST",
+      url: "/api/voice/signal",
+      headers: { "x-aegis-user": participants[0]!.id },
+      body: {
+        channelId: voiceChannel!.id,
+        toMemberId: participants[1]!.id,
+        signal: { type: "description", sdpType: "offer", sdp: "test-sdp" },
+      },
+    });
+    expect(signal.status).toBe(204);
+
+    const wrongKind = await join(participants[2]!.id, textChannel!.id);
+    expect(wrongKind.status).toBe(404);
+
+    for (const member of participants.slice(2, 6)) {
+      expect((await join(member.id)).status).toBe(200);
+    }
+    expect((await join(participants[6]!.id)).status).toBe(409);
+  });
+
+  it("searches only permitted message history", async () => {
+    const app = harness();
+    const { guild } = await app.store.createGuild({
+      name: "Search Test",
+      ownerId: "search-owner",
+      ownerName: "Search Owner",
+      ownerHandle: "search-owner",
+      accent: 0,
+      templateId: "friends",
+    });
+    const channel = guild.channels.find((entry) => entry.kind === "text")!;
+    await app.store.createMessage(channel.id, "search-owner", "Find this unique phrase");
+
+    const reply = await app.call({
+      url: `/api/search?q=${encodeURIComponent("unique phrase")}&guildId=${guild.id}`,
+      headers: { "x-aegis-user": "search-owner" },
+    });
+    expect(reply.status).toBe(200);
+    expect(reply.json().messages).toEqual([
+      expect.objectContaining({ body: "Find this unique phrase", channelId: channel.id }),
+    ]);
+
+    const tooShort = await app.call({
+      url: `/api/search?q=x&guildId=${guild.id}`,
+      headers: { "x-aegis-user": "search-owner" },
+    });
+    expect(tooShort.status).toBe(400);
+
+    const nonmember = await app.call({
+      url: `/api/search?q=${encodeURIComponent("unique phrase")}&guildId=${guild.id}`,
+      headers: { "x-aegis-user": "outsider" },
+    });
+    expect(nonmember.status).toBe(404);
+  });
+
+  it("exports a complete server backup only for its owner", async () => {
+    const app = harness();
+    const { guild } = await app.store.createGuild({
+      name: "Backup Test",
+      ownerId: "backup-owner",
+      ownerName: "Backup Owner",
+      ownerHandle: "backup-owner",
+      accent: 0,
+      templateId: "friends",
+    });
+    const channel = guild.channels.find((entry) => entry.kind === "text")!;
+    await app.store.createMessage(channel.id, "backup-owner", "Backup content");
+
+    const denied = await app.call({
+      url: `/api/guilds/${guild.id}/export`,
+      headers: { "x-aegis-user": "someone-else" },
+    });
+    expect(denied.status).toBe(403);
+
+    const exported = await app.call({
+      url: `/api/guilds/${guild.id}/export`,
+      headers: { "x-aegis-user": "backup-owner" },
+    });
+    expect(exported.status).toBe(200);
+    expect(exported.json()).toMatchObject({
+      schemaVersion: 1,
+      guild: { id: guild.id },
+      members: [expect.objectContaining({ id: "backup-owner" })],
+      messagesByChannel: {
+        [channel.id]: [expect.objectContaining({ body: "Backup content" })],
+      },
+    });
+  });
+
+  it("applies timeouts and bans and records immutable moderation history", async () => {
+    const app = harness();
+    const { guild } = await app.store.createGuild({
+      name: "Moderation Test",
+      ownerId: "moderation-owner",
+      ownerName: "Moderation Owner",
+      ownerHandle: "moderation-owner",
+      accent: 0,
+      templateId: "friends",
+    });
+    const guest = {
+      id: "moderation-target",
+      name: "Moderation Target",
+      handle: "moderation-target",
+      role: "artist" as const,
+      presence: "online" as const,
+      accent: 0,
+    };
+    const inviteHash = "b".repeat(64);
+    await app.store.createInvite(
+      guild.id,
+      "moderation-owner",
+      inviteHash,
+      new Date(Date.now() + 60_000).toISOString(),
+    );
+    await app.store.redeemInvite(inviteHash, guest);
+    const channel = guild.channels.find((entry) => entry.kind === "text")!;
+    const headers = { "x-aegis-user": "moderation-owner" };
+
+    const timedOut = await app.call({
+      method: "POST",
+      url: `/api/guilds/${guild.id}/moderation`,
+      headers,
+      body: { action: "timeout", targetId: guest.id, reason: "Pause", durationMinutes: 5 },
+    });
+    expect(timedOut.status).toBe(201);
+    expect(await app.store.hasPermission(channel.id, guest.id, "send_messages")).toBe(false);
+    expect(await app.store.hasPermission(channel.id, guest.id, "read_history")).toBe(true);
+
+    const unmuted = await app.call({
+      method: "POST",
+      url: `/api/guilds/${guild.id}/moderation`,
+      headers,
+      body: { action: "remove_timeout", targetId: guest.id, reason: "Resolved" },
+    });
+    expect(unmuted.status).toBe(201);
+    expect(await app.store.hasPermission(channel.id, guest.id, "send_messages")).toBe(true);
+
+    const banned = await app.call({
+      method: "POST",
+      url: `/api/guilds/${guild.id}/moderation`,
+      headers,
+      body: { action: "ban", targetId: guest.id, reason: "Repeated abuse" },
+    });
+    expect(banned.status).toBe(201);
+    expect(await app.store.hasChannel(channel.id, guest.id)).toBe(false);
+    expect(await app.store.listBannedMemberIds(guild.id, "moderation-owner")).toEqual([guest.id]);
+    const unbanned = await app.call({
+      method: "POST",
+      url: `/api/guilds/${guild.id}/moderation`,
+      headers,
+      body: { action: "unban", targetId: guest.id },
+    });
+    expect(unbanned.status).toBe(201);
+    expect(await app.store.listBannedMemberIds(guild.id, "moderation-owner")).toEqual([]);
+    expect((await app.store.listModerationAudit(guild.id, "moderation-owner", 100)).map((row) => row.action))
+      .toEqual(["unban", "ban", "remove_timeout", "timeout"]);
+
+    const protectedOwner = await app.call({
+      method: "POST",
+      url: `/api/guilds/${guild.id}/moderation`,
+      headers,
+      body: { action: "ban", targetId: "moderation-owner" },
+    });
+    expect(protectedOwner.status).toBe(403);
+  });
+
   it("syncs a verified account without granting access to servers it has not joined", async () => {
     const app = harness({ requireAuth: true });
     const seeded = await app.store.createGuild({

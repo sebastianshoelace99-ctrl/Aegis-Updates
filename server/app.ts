@@ -2,7 +2,8 @@ import { createHash, randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { pipeline } from "node:stream/promises";
 import { ZodError } from "zod";
-import type { BackendEvent } from "../shared/events";
+import { voiceSignalSchema, type BackendEvent } from "../shared/events";
+import { moderationActionSchema } from "../shared/moderation";
 import { presenceSchema, type Member } from "../shared/domain";
 import { createServerInputSchema, slugifyServerName } from "../shared/guildFactory";
 import {
@@ -40,6 +41,11 @@ export type AppOptions = {
   /** Empty disables the shared-secret check, which is the local-dev default. */
   apiKey: string;
   uploads: UploadStore;
+  iceServers?: Array<{
+    urls: string | string[];
+    username?: string;
+    credential?: string;
+  }>;
   /**
    * The abuse-prevention guard. Optional so the smoke backend and the tests keep working, but a
    * missing guard is replaced by a default one rather than by no protection at all.
@@ -407,6 +413,19 @@ export function createRequestHandler(options: AppOptions) {
   const guard = options.guard ?? createRequestGuard();
   const trustProxy = options.trustProxy ?? false;
   const adminKey = options.adminKey ?? "";
+  const voiceParticipants = new Map<string, Map<string, number>>();
+  const voiceParticipantTtlMs = 60_000;
+
+  const activeVoiceMembers = (channelId: string): Map<string, number> => {
+    const participants = voiceParticipants.get(channelId);
+    if (!participants) return new Map();
+    const now = Date.now();
+    for (const [memberId, lastSeenAt] of participants) {
+      if (now - lastSeenAt > voiceParticipantTtlMs) participants.delete(memberId);
+    }
+    if (participants.size === 0) voiceParticipants.delete(channelId);
+    return participants;
+  };
 
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     cors(req, res);
@@ -802,6 +821,124 @@ export function createRequestHandler(options: AppOptions) {
       if (
         isApi &&
         req.method === "POST" &&
+        segments[1] === "voice" &&
+        segments[2] === "join" &&
+        segments.length === 3
+      ) {
+        const body = bodyRecord(await readJson(req));
+        const channelId = typeof body.channelId === "string" ? body.channelId : "";
+        if (!channelId) throw new HttpError(400, "A voice channel id is required.");
+        const memberId = userIdOf(req);
+        const channel = (await options.store.readWorkspace(memberId)).guilds
+          .flatMap((guild) => guild.channels)
+          .find((entry) => entry.id === channelId);
+        if (!channel || channel.kind !== "voice") {
+          throw new HttpError(404, "Unknown voice channel.");
+        }
+        if (!(await options.store.hasPermission(channelId, memberId, "connect_voice"))) {
+          throw new HttpError(403, "You do not have permission to join this voice channel.");
+        }
+        const participants = activeVoiceMembers(channelId);
+        if (!participants.has(memberId) && participants.size >= 6) {
+          throw new HttpError(409, "This peer-to-peer call is full (maximum 6 participants).");
+        }
+        const peers = [...participants.keys()].filter((id) => id !== memberId);
+        participants.set(memberId, Date.now());
+        voiceParticipants.set(channelId, participants);
+        publish(options.bus, { type: "voice-peer", channelId, memberId, joined: true });
+        sendJson(res, 200, {
+          peers,
+          iceServers: options.iceServers ?? [{ urls: "stun:stun.l.google.com:19302" }],
+          participantLimit: 6,
+        });
+        return;
+      }
+
+      if (
+        isApi &&
+        req.method === "POST" &&
+        segments[1] === "voice" &&
+        segments[2] === "heartbeat" &&
+        segments.length === 3
+      ) {
+        const body = bodyRecord(await readJson(req));
+        const channelId = typeof body.channelId === "string" ? body.channelId : "";
+        const memberId = userIdOf(req);
+        const participants = activeVoiceMembers(channelId);
+        if (!channelId || !participants.has(memberId)) {
+          throw new HttpError(409, "You are not connected to that voice channel.");
+        }
+        participants.set(memberId, Date.now());
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      if (
+        isApi &&
+        req.method === "DELETE" &&
+        segments[1] === "voice" &&
+        segments[2] === "join" &&
+        segments.length === 3
+      ) {
+        const body = bodyRecord(await readJson(req));
+        const channelId = typeof body.channelId === "string" ? body.channelId : "";
+        const memberId = userIdOf(req);
+        const participants = activeVoiceMembers(channelId);
+        if (participants.delete(memberId)) {
+          if (participants.size === 0) voiceParticipants.delete(channelId);
+          publish(options.bus, { type: "voice-peer", channelId, memberId, joined: false });
+        }
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      if (
+        isApi &&
+        req.method === "POST" &&
+        segments[1] === "voice" &&
+        segments[2] === "signal" &&
+        segments.length === 3
+      ) {
+        const body = bodyRecord(await readJson(req));
+        const channelId = typeof body.channelId === "string" ? body.channelId : "";
+        const toMemberId = typeof body.toMemberId === "string" ? body.toMemberId : "";
+        const signal = voiceSignalSchema.safeParse(body.signal);
+        const fromMemberId = userIdOf(req);
+        const participants = activeVoiceMembers(channelId);
+        if (!channelId || !toMemberId || !signal.success) {
+          throw new HttpError(400, "A valid voice signal, channel and recipient are required.");
+        }
+        if (
+          toMemberId === fromMemberId ||
+          !participants.has(fromMemberId) ||
+          !participants.has(toMemberId)
+        ) {
+          throw new HttpError(403, "Both peers must be connected to the same voice channel.");
+        }
+        if (
+          !(await options.store.hasPermission(channelId, fromMemberId, "connect_voice")) ||
+          !(await options.store.hasPermission(channelId, toMemberId, "connect_voice"))
+        ) {
+          throw new HttpError(403, "A peer no longer has permission to connect to voice.");
+        }
+        participants.set(fromMemberId, Date.now());
+        publish(options.bus, {
+          type: "voice-signal",
+          channelId,
+          fromMemberId,
+          toMemberId,
+          signal: signal.data,
+        });
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      if (
+        isApi &&
+        req.method === "POST" &&
         segments[1] === "invites" &&
         segments[2] === "redeem" &&
         segments.length === 3
@@ -844,6 +981,64 @@ export function createRequestHandler(options: AppOptions) {
         return;
       }
 
+      if (
+        isApi &&
+        segments[1] === "guilds" &&
+        segments.length === 4 &&
+        segments[3] === "moderation"
+      ) {
+        const guildId = segments[2];
+        if (!guildId) throw new HttpError(400, "A server id is required.");
+        const memberId = userIdOf(req);
+        if (req.method === "GET") {
+          sendJson(res, 200, {
+            entries: await options.store.listModerationAudit(guildId, memberId, 100),
+            bannedMemberIds: await options.store.listBannedMemberIds(guildId, memberId),
+          });
+          return;
+        }
+        if (req.method === "POST") {
+          const body = bodyRecord(await readJson(req));
+          const action = moderationActionSchema.safeParse(body.action);
+          const targetId = typeof body.targetId === "string" ? body.targetId.trim() : "";
+          const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+          const durationMinutes =
+            typeof body.durationMinutes === "number" ? body.durationMinutes : undefined;
+          if (!action.success) throw new HttpError(400, "Choose a valid moderation action.");
+          if (!targetId || targetId.length > 64) throw new HttpError(400, "A valid target is required.");
+          if (reason.length > 500) throw new HttpError(400, "Reasons are limited to 500 characters.");
+          const entry = await options.store.moderateMember(
+            guildId,
+            memberId,
+            targetId,
+            action.data,
+            reason,
+            durationMinutes,
+          );
+          sendJson(res, 201, {
+            entry,
+            workspace: await options.store.readWorkspace(memberId),
+          });
+          return;
+        }
+      }
+
+      if (
+        isApi &&
+        req.method === "GET" &&
+        segments[1] === "guilds" &&
+        segments.length === 4 &&
+        segments[3] === "export"
+      ) {
+        const guildId = segments[2];
+        if (!guildId) throw new HttpError(400, "A server id is required.");
+        if (!(await options.store.isGuildOwner(guildId, userIdOf(req)))) {
+          throw new HttpError(403, "Only the server owner can export its data.");
+        }
+        sendJson(res, 200, await options.store.exportGuild(guildId));
+        return;
+      }
+
       if (isApi && req.method === "DELETE" && segments[1] === "guilds" && segments.length === 3) {
         const guildId = segments[2];
         if (!guildId) throw new HttpError(400, "A server id is required.");
@@ -864,9 +1059,10 @@ export function createRequestHandler(options: AppOptions) {
         }
 
         const caller = userIdOf(req);
-        const currentGuild = (await options.store.readWorkspace(sessionUser?.id)).guilds.find(
-          (guild) => guild.id === id,
-        );
+        if (!(await options.store.hasGuildPermission(id, caller, "manage_guild"))) {
+          throw new HttpError(403, "You do not have permission to manage this server.");
+        }
+        const currentGuild = (await options.store.readWorkspace(caller)).guilds.find((guild) => guild.id === id);
         if (!currentGuild) throw new HttpError(404, "Unknown server.");
         const memberIds = (body as { memberIds?: unknown } | null)?.memberIds;
         if (!Array.isArray(memberIds) || !memberIds.includes(caller)) {
@@ -887,6 +1083,31 @@ export function createRequestHandler(options: AppOptions) {
         return;
       }
 
+      if (isApi && req.method === "GET" && segments[1] === "search" && segments.length === 2) {
+        const query = (url.searchParams.get("q") ?? "").trim();
+        const guildId = url.searchParams.get("guildId");
+        if (query.length < 2 || query.length > 100) {
+          throw new HttpError(400, "Search terms must contain 2–100 characters.");
+        }
+        const workspace = await options.store.readWorkspace(userIdOf(req));
+        const guilds = guildId
+          ? workspace.guilds.filter((guild) => guild.id === guildId)
+          : workspace.guilds;
+        if (guildId && guilds.length === 0) throw new HttpError(404, "Unknown server.");
+        const channels = guilds.flatMap((guild) => guild.channels);
+        const searchable = channels.filter(
+          (channel) => channel.kind !== "voice",
+        );
+        const permittedChannelIds: string[] = [];
+        for (const channel of searchable) {
+          if (await options.store.hasPermission(channel.id, userIdOf(req), "read_history")) {
+            permittedChannelIds.push(channel.id);
+          }
+        }
+        const messages = await options.store.searchMessages(permittedChannelIds, query, 50);
+        sendJson(res, 200, { messages });
+        return;
+      }
 
       if (
         isApi &&
@@ -898,8 +1119,12 @@ export function createRequestHandler(options: AppOptions) {
         if (!channelId) throw new HttpError(400, "A channel id is required.");
 
         if (req.method === "GET") {
-          if (sessionUser && !(await options.store.hasChannel(channelId, sessionUser.id))) {
-            throw new HttpError(403, "Join this server before reading its channels.");
+          const memberId = userIdOf(req);
+          if (!(await options.store.hasPermission(channelId, memberId, "view_channel"))) {
+            throw new HttpError(403, "You do not have permission to view this channel.");
+          }
+          if (!(await options.store.hasPermission(channelId, memberId, "read_history"))) {
+            throw new HttpError(403, "You do not have permission to read this channel's history.");
           }
           const beforeRaw = url.searchParams.get("before");
           if (beforeRaw && Number.isNaN(Date.parse(beforeRaw))) {
@@ -915,8 +1140,9 @@ export function createRequestHandler(options: AppOptions) {
         }
 
         if (req.method === "POST") {
-          if (sessionUser && !(await options.store.hasChannel(channelId, sessionUser.id))) {
-            throw new HttpError(403, "Join this server before sending messages.");
+          const memberId = userIdOf(req);
+          if (!(await options.store.hasPermission(channelId, memberId, "send_messages"))) {
+            throw new HttpError(403, "You do not have permission to send messages in this channel.");
           }
           const body = await readJson(req);
           const text =
@@ -1050,8 +1276,8 @@ export function createRequestHandler(options: AppOptions) {
         if (!channelId || !messageId) {
           throw new HttpError(400, "A channel id and a message id are required.");
         }
-        if (sessionUser && !(await options.store.hasChannel(channelId, sessionUser.id))) {
-          throw new HttpError(403, "Join this server before reacting to its messages.");
+        if (!(await options.store.hasPermission(channelId, userIdOf(req), "add_reactions"))) {
+          throw new HttpError(403, "You do not have permission to add reactions in this channel.");
         }
 
         const body = bodyRecord(await readJson(req));
@@ -1082,7 +1308,7 @@ export function createRequestHandler(options: AppOptions) {
         if (typeof channelId !== "string" || channelId.length === 0) {
           throw new HttpError(400, "A channelId is required.");
         }
-        if (!(await options.store.hasChannel(channelId, sessionUser?.id))) {
+        if (!(await options.store.hasPermission(channelId, userIdOf(req), "send_messages"))) {
           throw new HttpError(404, `Unknown channel: ${channelId}`);
         }
 
@@ -1117,6 +1343,15 @@ export function createRequestHandler(options: AppOptions) {
           }
           if (event.type === "typing") {
             return options.store.hasChannel(event.channelId, memberId);
+          }
+          if (event.type === "voice-peer") {
+            return options.store.hasPermission(event.channelId, memberId, "connect_voice");
+          }
+          if (event.type === "voice-signal") {
+            return (
+              event.toMemberId === memberId &&
+              (await options.store.hasPermission(event.channelId, memberId, "connect_voice"))
+            );
           }
           const workspace = await options.store.readWorkspace(memberId);
           return workspace.members.some((member) => member.id === event.memberId);

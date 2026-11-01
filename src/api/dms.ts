@@ -48,6 +48,7 @@ export function dmChannel(member: Member): Channel {
     kind: "text",
     categoryId: "dm",
     commissionId: null,
+    permissionOverwrites: {},
   };
 }
 

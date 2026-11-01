@@ -6,7 +6,7 @@ import { create } from "zustand";
  * cannot live in whichever component happened to render the trigger.
  */
 
-export type SettingsTab = "profile" | "status" | "appearance" | "voice";
+export type SettingsTab = "profile" | "status" | "appearance" | "voice" | "notifications";
 
 export type UiState = {
   settingsOpen: boolean;
@@ -15,6 +15,8 @@ export type UiState = {
   createServerOpen: boolean;
   joinServerOpen: boolean;
   joinServerCode: string;
+  searchOpen: boolean;
+  searchGuildId: string | null;
   /** A member id, or null when no profile card is open. */
   profileMemberId: string | null;
 
@@ -27,6 +29,8 @@ export type UiState = {
   closeCreateServer: () => void;
   openJoinServer: (code?: string) => void;
   closeJoinServer: () => void;
+  openSearch: (guildId: string) => void;
+  closeSearch: () => void;
   openProfile: (memberId: string) => void;
   closeProfile: () => void;
 };
@@ -38,6 +42,8 @@ export const useUiStore = create<UiState>((set) => ({
   createServerOpen: false,
   joinServerOpen: false,
   joinServerCode: "",
+  searchOpen: false,
+  searchGuildId: null,
   profileMemberId: null,
 
   openSettings: (tab = "profile") => set({ settingsOpen: true, settingsTab: tab }),
@@ -49,6 +55,8 @@ export const useUiStore = create<UiState>((set) => ({
   closeCreateServer: () => set({ createServerOpen: false }),
   openJoinServer: (code = "") => set({ joinServerOpen: true, joinServerCode: code }),
   closeJoinServer: () => set({ joinServerOpen: false, joinServerCode: "" }),
+  openSearch: (guildId) => set({ searchOpen: true, searchGuildId: guildId }),
+  closeSearch: () => set({ searchOpen: false, searchGuildId: null }),
   openProfile: (memberId) => set({ profileMemberId: memberId }),
   closeProfile: () => set({ profileMemberId: null }),
 }));

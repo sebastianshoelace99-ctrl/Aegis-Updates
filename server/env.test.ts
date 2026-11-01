@@ -13,6 +13,7 @@ const ENV_KEYS = [
   "AEGIS_AUTH_FILE",
   "AEGIS_UPLOAD_DIR",
   "AEGIS_PUBLIC_URL",
+  "AEGIS_ICE_SERVERS",
 ] as const;
 
 const originalEnv = new Map(ENV_KEYS.map((key) => [key, process.env[key]]));
@@ -42,6 +43,19 @@ function configureProduction(): void {
 }
 
 describe("production backend configuration", () => {
+  it("uses the default STUN server or validates deployment ICE servers", () => {
+    expect(readConfig().iceServers).toEqual([{ urls: "stun:stun.l.google.com:19302" }]);
+    process.env.AEGIS_ICE_SERVERS = JSON.stringify([
+      { urls: "turn:turn.example.com:3478", username: "test-user", credential: "test-pass" },
+    ]);
+    expect(readConfig().iceServers).toEqual([
+      { urls: "turn:turn.example.com:3478", username: "test-user", credential: "test-pass" },
+    ]);
+
+    process.env.AEGIS_ICE_SERVERS = "[{}]";
+    expect(() => readConfig()).toThrow(/AEGIS_ICE_SERVERS is invalid/);
+  });
+
   it("rejects production startup when session authentication is disabled", () => {
     configureProduction();
     delete process.env.AEGIS_REQUIRE_AUTH;

@@ -13,6 +13,7 @@ import { MemberRail } from "../features/members/MemberRail";
 import { ProfileCard } from "../features/settings/ProfileCard";
 import { ServerSettingsModal } from "../features/settings/ServerSettingsModal";
 import { SettingsModal } from "../features/settings/SettingsModal";
+import { SearchModal } from "../features/search/SearchModal";
 import { VoiceRoute } from "../features/voice/VoiceRoute";
 import { ChannelList } from "../features/workspace/ChannelList";
 import { CreateServerModal } from "../features/workspace/CreateServerModal";
@@ -233,6 +234,7 @@ export function Workspace(): React.JSX.Element {
 
       <SettingsModal />
       <ServerSettingsModal />
+      <SearchModal />
       <ProfileCard />
       {createServerOpen ? <CreateServerModal onClose={closeCreateServer} /> : null}
       <JoinServerModal />

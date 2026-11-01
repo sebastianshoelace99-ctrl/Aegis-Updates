@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import type { InfiniteData } from "@tanstack/react-query";
 import { messagesQueryKey, type Message } from "../api/messages";
 import { fetchWorkspace, postPresence } from "../api/backend";
+import { liveWorkspace } from "../api/liveWorkspace";
+import { findChannelById, guildOfChannel } from "../api/workspace";
+import { guildNotificationLevel } from "../api/serverSettings";
 import { replaceWorkspace } from "../api/liveWorkspace";
 import { effectivePresence } from "../api/profile";
 import { queryClient } from "../api/queryClient";
@@ -9,12 +12,59 @@ import { startRealtime } from "../api/realtime";
 import { bridge } from "../bridge/client";
 import { initShellSync, useShellState } from "../shell/useShellState";
 import { useSettingsStore } from "../state/settingsStore";
+import { getSelfHandle, getSelfId } from "../state/identity";
+import { handleVoicePeer, handleVoiceSignal } from "../state/voiceSession";
 import { useWorkspaceStore } from "../state/workspaceStore";
 import { Workspace } from "./Workspace";
 import { useAppearance } from "./useAppearance";
 import styles from "./App.module.css";
 
 const TYPING_TTL_MS = 4_000;
+
+function notifyIncomingMessage(message: Message): void {
+  const settings = useSettingsStore.getState();
+  if (
+    !settings.notifications.enabled ||
+    settings.status.presence === "dnd" ||
+    typeof window === "undefined" ||
+    !("Notification" in window) ||
+    window.Notification.permission !== "granted" ||
+    message.authorId === getSelfId() ||
+    document.hasFocus()
+  ) {
+    return;
+  }
+
+  const workspace = liveWorkspace();
+  const guild = guildOfChannel(workspace, message.channelId);
+  const mentioned = message.mentions.includes(getSelfHandle());
+  if (
+    (guild && guildNotificationLevel(guild) === "none") ||
+    (guild && guildNotificationLevel(guild) === "mentions" && !mentioned) ||
+    (settings.notifications.mentionsOnly && !mentioned)
+  ) {
+    return;
+  }
+
+  const author = workspace.members.find((member) => member.id === message.authorId);
+  const channel = findChannelById(workspace, message.channelId);
+  const title = channel
+    ? `${author?.name ?? "New message"} · #${channel.name}`
+    : author?.name ?? "New message";
+  const body =
+    message.body || (message.attachments.length > 0 ? "Sent an attachment" : "Sent a message");
+
+  try {
+    const notification = new window.Notification(title, { body });
+    notification.onclick = () => {
+      useWorkspaceStore.getState().openChannel(message.channelId);
+      window.focus();
+      notification.close();
+    };
+  } catch (error) {
+    console.warn("[aegis] could not display a desktop notification", error);
+  }
+}
 
 type Boot =
   | { state: "loading" }
@@ -87,6 +137,7 @@ export function App(): React.JSX.Element {
 
     const stop = startRealtime({
       onMessage: (message) => {
+        notifyIncomingMessage(message);
         // Patch, never invalidate: a refetch would discard the paged history behind the reader.
         queryClient.setQueryData<InfiniteData<Message[], string | null>>(
           messagesQueryKey(message.channelId),
@@ -149,6 +200,10 @@ export function App(): React.JSX.Element {
       onPresence: (memberId, presence) => {
         useWorkspaceStore.getState().setPresence(memberId, presence);
       },
+      onVoicePeer: (channelId, memberId, joined) =>
+        handleVoicePeer(channelId, memberId, joined),
+      onVoiceSignal: (channelId, memberId, signal) =>
+        handleVoiceSignal(channelId, memberId, signal),
     });
 
     return () => {

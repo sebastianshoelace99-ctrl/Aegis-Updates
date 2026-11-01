@@ -6,6 +6,7 @@ import {
   type CreateServerInput,
 } from "../shared/guildFactory";
 import {
+  channelSchema,
   normalizeGuild,
   type ChannelKind,
   type Guild,
@@ -14,6 +15,17 @@ import {
   type Role,
   type Workspace,
 } from "../shared/domain";
+import {
+  DEFAULT_MEMBER_PERMISSIONS,
+  GUILD_PERMISSIONS,
+  hasChannelPermission,
+  hasGuildPermission as canGuildPermission,
+  type GuildPermission,
+} from "../shared/permissions";
+import type {
+  ModerationAction,
+  ModerationAuditEntry,
+} from "../shared/moderation";
 import {
   attachmentSchema,
   mentionedHandles,
@@ -25,7 +37,7 @@ import {
   type Reaction,
 } from "../shared/messages";
 import { HttpError } from "./errors";
-import type { InviteSummary, Store } from "./store";
+import type { GuildBackup, InviteSummary, Store } from "./store";
 
 /**
  * Supabase persistence through PostgREST.
@@ -73,6 +85,7 @@ type ChannelRow = {
   kind: ChannelKind;
   commission_id: string | null;
   position: number;
+  permission_overwrites?: unknown;
 };
 
 type MembershipRow = { guild_id: string; member_id: string; joined_at: string };
@@ -84,6 +97,7 @@ type RoleRow = {
   color: number;
   hoist: boolean;
   position: number;
+  permissions?: string[] | null;
 };
 
 type AssignmentRow = { guild_id: string; member_id: string; role_id: string };
@@ -93,6 +107,16 @@ type InviteRow = {
   expires_at: string;
   revoked_at: string | null;
   use_count: number;
+};
+type ModerationAuditRow = {
+  id: string;
+  guild_id: string;
+  actor_id: string;
+  target_id: string;
+  action: ModerationAction;
+  reason: string;
+  expires_at: string | null;
+  created_at: string;
 };
 
 type MessageRow = {
@@ -180,6 +204,19 @@ function messageOf(row: MessageRow): Message {
   };
 }
 
+function moderationAuditOf(row: ModerationAuditRow): ModerationAuditEntry {
+  return {
+    id: row.id,
+    guildId: row.guild_id,
+    actorId: row.actor_id,
+    targetId: row.target_id,
+    action: row.action,
+    reason: row.reason,
+    expiresAt: row.expires_at ? iso(row.expires_at) : null,
+    createdAt: iso(row.created_at),
+  };
+}
+
 function mapWorkspace(
   memberRows: MemberRow[],
   guildRows: GuildRow[],
@@ -208,6 +245,9 @@ function mapWorkspace(
         kind: entry.kind,
         categoryId: entry.category_id,
         commissionId: entry.commission_id,
+        permissionOverwrites: channelSchema.shape.permissionOverwrites.parse(
+          entry.permission_overwrites,
+        ),
       }));
 
     const memberIds = membershipRows
@@ -224,6 +264,12 @@ function mapWorkspace(
         color: entry.color,
         hoist: entry.hoist,
         position: entry.position,
+        permissions: (
+          Array.isArray(entry.permissions) ? entry.permissions : DEFAULT_MEMBER_PERMISSIONS
+        ).filter(
+          (permission): permission is GuildPermission =>
+            (GUILD_PERMISSIONS as readonly string[]).includes(permission),
+        ),
       }));
 
     const memberRoles: Record<string, string[]> = {};
@@ -354,22 +400,54 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
     const workspace = mapWorkspace(members, guilds, categories, channels, memberships, roles, assignments);
     if (!memberId) return workspace;
 
-    const visibleGuilds = workspace.guilds.filter((guild) => guild.memberIds.includes(memberId));
+    const visibleGuilds = workspace.guilds
+      .filter((guild) => guild.memberIds.includes(memberId))
+      .map((guild) => {
+        const visibleChannels = guild.channels.filter((channel) =>
+          hasChannelPermission(guild, channel, memberId, "view_channel"),
+        );
+        const visibleCategoryIds = new Set(visibleChannels.map((channel) => channel.categoryId));
+        return {
+          ...guild,
+          channels: visibleChannels,
+          categories: guild.categories.filter((category) => visibleCategoryIds.has(category.id)),
+        };
+      });
     return {
       guilds: visibleGuilds,
       members: workspace.members,
     };
   }
 
-  async function requireGuildOwner(guildId: string, memberId: string): Promise<void> {
-    const rows = await all<{ owner_id: string }>(
-      "guilds",
-      `select=owner_id&id=eq.${enc(guildId)}&limit=1`,
-    );
-    if (!rows[0]) throw new HttpError(404, "Unknown server.");
-    if (rows[0].owner_id !== memberId) {
-      throw new HttpError(403, "Only the server owner can manage invite links.");
+  async function requireGuildPermission(
+    guildId: string,
+    memberId: string,
+    permission: GuildPermission,
+  ): Promise<void> {
+    const workspace = await readWorkspace(memberId);
+    const guild = workspace.guilds.find((entry) => entry.id === guildId);
+    if (!guild) throw new HttpError(404, "Unknown server.");
+    if (!canGuildPermission(guild, memberId, permission)) {
+      throw new HttpError(403, `You do not have permission to ${permission.replaceAll("_", " ")}.`);
     }
+  }
+
+  async function hasActiveRestriction(
+    guildId: string,
+    memberId: string,
+    kind: "timeout" | "ban",
+  ): Promise<boolean> {
+    const rows = await all<{ expires_at: string | null }>(
+      "guild_member_restrictions",
+      `select=expires_at&guild_id=eq.${enc(guildId)}&member_id=eq.${enc(memberId)}&kind=eq.${kind}&limit=1`,
+    );
+    const row = rows[0];
+    return Boolean(
+      row &&
+        (row.expires_at === null ||
+          row.expires_at === undefined ||
+          Date.parse(row.expires_at) > Date.now()),
+    );
   }
 
   function inviteSummary(row: InviteRow): InviteSummary {
@@ -521,6 +599,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
               kind: channel.kind,
               commission_id: channel.commissionId,
               position: index,
+              permission_overwrites: channel.permissionOverwrites,
             })),
           ),
         });
@@ -535,6 +614,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
               color: role.color,
               hoist: role.hoist,
               position: role.position,
+              permissions: role.permissions,
             })),
           ),
         });
@@ -578,12 +658,156 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
       }
     },
 
+    async exportGuild(guildId) {
+      const workspace = await readWorkspace();
+      const guild = workspace.guilds.find((entry) => entry.id === guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+
+      const messagesByChannel: GuildBackup["messagesByChannel"] = {};
+      for (const channel of guild.channels) {
+        const rows: MessageRow[] = [];
+        for (let offset = 0; ; offset += 1000) {
+          const page = await all<MessageRow>(
+            "messages",
+            `select=*&channel_id=eq.${enc(channel.id)}&order=created_at.asc,id.asc&limit=1000&offset=${offset}`,
+          );
+          rows.push(...page);
+          if (page.length < 1000) break;
+        }
+        messagesByChannel[channel.id] = rows.map(messageOf);
+      }
+
+      const members = new Set(guild.memberIds);
+      return {
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        guild,
+        members: workspace.members.filter((member) => members.has(member.id)),
+        messagesByChannel,
+      };
+    },
+
+    async moderateMember(guildId, actorId, targetId, action, reason, durationMinutes = 30) {
+      await requireGuildPermission(guildId, actorId, "moderate_members");
+      const workspace = await readWorkspace();
+      const guild = workspace.guilds.find((entry) => entry.id === guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (targetId === actorId || targetId === guild.ownerId) {
+        throw new HttpError(403, "You cannot moderate yourself or the server creator.");
+      }
+      if (action !== "unban" && !guild.memberIds.includes(targetId)) {
+        throw new HttpError(404, "That member is not in this server.");
+      }
+
+      let expiresAt: string | null = null;
+      if (action === "timeout") {
+        if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 40_320) {
+          throw new HttpError(400, "Timeouts must last between 1 minute and 28 days.");
+        }
+        expiresAt = new Date(Date.now() + durationMinutes * 60_000).toISOString();
+        await sb("guild_member_restrictions?on_conflict=guild_id,member_id,kind", {
+          method: "POST",
+          headers: { prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({
+            guild_id: guildId,
+            member_id: targetId,
+            kind: "timeout",
+            expires_at: expiresAt,
+            reason,
+            created_by: actorId,
+          }),
+        });
+      } else if (action === "remove_timeout" || action === "unban") {
+        const kind = action === "unban" ? "ban" : "timeout";
+        if (!(await hasActiveRestriction(guildId, targetId, kind))) {
+          throw new HttpError(404, action === "unban"
+            ? "That member is not banned from this server."
+            : "That member does not have an active timeout.");
+        }
+        await sb(
+          `guild_member_restrictions?guild_id=eq.${enc(guildId)}&member_id=eq.${enc(targetId)}&kind=eq.${kind}`,
+          { method: "DELETE" },
+        );
+      } else if (action === "ban") {
+        await sb("guild_member_restrictions?on_conflict=guild_id,member_id,kind", {
+          method: "POST",
+          headers: { prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({
+            guild_id: guildId,
+            member_id: targetId,
+            kind: "ban",
+            expires_at: null,
+            reason,
+            created_by: actorId,
+          }),
+        });
+        await sb(
+          `guild_members?guild_id=eq.${enc(guildId)}&member_id=eq.${enc(targetId)}`,
+          { method: "DELETE" },
+        );
+      } else if (action === "kick") {
+        await sb(
+          `guild_members?guild_id=eq.${enc(guildId)}&member_id=eq.${enc(targetId)}`,
+          { method: "DELETE" },
+        );
+      }
+
+      const [row] = await sb<ModerationAuditRow[]>("guild_moderation_audit", {
+        method: "POST",
+        headers: { prefer: "return=representation" },
+        body: JSON.stringify({
+          guild_id: guildId,
+          actor_id: actorId,
+          target_id: targetId,
+          action,
+          reason,
+          expires_at: expiresAt,
+        }),
+      });
+      if (!row) throw new HttpError(502, "Supabase did not return the moderation audit record.");
+      return moderationAuditOf(row);
+    },
+
+    async listModerationAudit(guildId, memberId, limit) {
+      await requireGuildPermission(guildId, memberId, "moderate_members");
+      const rows = await all<ModerationAuditRow>(
+        "guild_moderation_audit",
+        `select=*&guild_id=eq.${enc(guildId)}&order=created_at.desc,id.desc&limit=${limit}`,
+      );
+      return rows.map(moderationAuditOf);
+    },
+
+    async listBannedMemberIds(guildId, memberId) {
+      await requireGuildPermission(guildId, memberId, "moderate_members");
+      const rows = await all<{ member_id: string }>(
+        "guild_member_restrictions",
+        `select=member_id&guild_id=eq.${enc(guildId)}&kind=eq.ban&order=created_at.desc`,
+      );
+      return rows.map((row) => row.member_id);
+    },
+
     async saveGuild(raw) {
       const guild = normalizeGuild(raw);
       if (!guild) throw new HttpError(400, "That guild is not a valid workspace record.");
 
-      const exists = await all<{ id: string }>("guilds", `select=id&id=eq.${enc(guild.id)}`);
+      const exists = await all<{ id: string; owner_id: string }>(
+        "guilds",
+        `select=id,owner_id&id=eq.${enc(guild.id)}`,
+      );
       if (exists.length === 0) throw new HttpError(404, `Unknown guild: ${guild.id}`);
+      if (guild.ownerId !== exists[0]?.owner_id) {
+        throw new HttpError(403, "Server ownership cannot be changed.");
+      }
+      if (guild.memberRoles[guild.ownerId ?? ""]?.includes("owner") !== true) {
+        throw new HttpError(403, "The server creator must retain the owner role.");
+      }
+      if (
+        Object.entries(guild.memberRoles).some(
+          ([memberId, roleIds]) => memberId !== guild.ownerId && roleIds.includes("owner"),
+        )
+      ) {
+        throw new HttpError(403, "Only the server creator can hold the owner role.");
+      }
 
       await ensureMembers(guild.memberIds);
 
@@ -626,6 +850,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
             kind: channel.kind,
             commission_id: channel.commissionId,
             position: index,
+            permission_overwrites: channel.permissionOverwrites,
           })),
         ),
       });
@@ -641,6 +866,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
             color: role.color,
             hoist: role.hoist,
             position: role.position,
+            permissions: role.permissions,
           })),
         ),
       });
@@ -712,7 +938,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
     },
 
     async createInvite(guildId, memberId, codeHash, expiresAt) {
-      await requireGuildOwner(guildId, memberId);
+      await requireGuildPermission(guildId, memberId, "manage_invites");
       const [row] = await sb<InviteRow[]>("guild_invites", {
         method: "POST",
         headers: { prefer: "return=representation" },
@@ -728,7 +954,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
     },
 
     async listInvites(guildId, memberId) {
-      await requireGuildOwner(guildId, memberId);
+      await requireGuildPermission(guildId, memberId, "manage_invites");
       const rows = await all<InviteRow>(
         "guild_invites",
         `select=id,created_at,expires_at,revoked_at,use_count&guild_id=eq.${enc(guildId)}&order=created_at.desc`,
@@ -737,7 +963,7 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
     },
 
     async revokeInvite(guildId, inviteId, memberId) {
-      await requireGuildOwner(guildId, memberId);
+      await requireGuildPermission(guildId, memberId, "manage_invites");
       const existing = await all<{ id: string }>(
         "guild_invites",
         `select=id&id=eq.${enc(inviteId)}&guild_id=eq.${enc(guildId)}&limit=1`,
@@ -769,6 +995,19 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
         (before ? `&created_at=lt.${enc(before)}` : "");
       const rows = await all<MessageRow>("messages", query);
       return rows.map(messageOf).reverse();
+    },
+
+    async searchMessages(channelIds, query, limit) {
+      if (channelIds.length === 0) return [];
+      const rows = await sb<MessageRow[]>("rpc/aegis_search_messages", {
+        method: "POST",
+        body: JSON.stringify({
+          p_channel_ids: [...channelIds],
+          p_query: query,
+          p_limit: limit,
+        }),
+      });
+      return rows.map(messageOf);
     },
 
     async createMessage(channelId, authorId, body, attachments = []) {
@@ -852,11 +1091,44 @@ export function createSupabaseStore(config: SupabaseConfig): Store {
       );
       if (!rows[0]) return false;
       if (!memberId) return true;
-      const memberships = await all<{ member_id: string }>(
-        "guild_members",
-        `select=member_id&guild_id=eq.${enc(rows[0].guild_id)}&member_id=eq.${enc(memberId)}&limit=1`,
+      const workspace = await readWorkspace(memberId);
+      const guild = workspace.guilds.find((entry) =>
+        entry.channels.some((channel) => channel.id === channelId),
       );
-      return memberships.length > 0;
+      if (!guild || (await hasActiveRestriction(guild.id, memberId, "ban"))) return false;
+      return true;
+    },
+
+    async hasPermission(channelId, memberId, permission) {
+      const workspace = await readWorkspace(memberId);
+      const guild = workspace.guilds.find((entry) =>
+        entry.channels.some((channel) => channel.id === channelId),
+      );
+      const channel = guild?.channels.find((entry) => entry.id === channelId);
+      if (!guild || !channel || (await hasActiveRestriction(guild.id, memberId, "ban"))) {
+        return false;
+      }
+      if (
+        permission !== "view_channel" &&
+        permission !== "read_history" &&
+        (await hasActiveRestriction(guild.id, memberId, "timeout")) &&
+        ["send_messages", "add_reactions", "connect_voice", "speak", "share_video", "share_screen"].includes(permission)
+      ) {
+        return false;
+      }
+      return Boolean(
+        hasChannelPermission(guild, channel, memberId, permission),
+      );
+    },
+
+    async hasGuildPermission(guildId, memberId, permission) {
+      const workspace = await readWorkspace(memberId);
+      const guild = workspace.guilds.find((entry) => entry.id === guildId);
+      return Boolean(
+        guild &&
+          !(await hasActiveRestriction(guildId, memberId, "ban")) &&
+          canGuildPermission(guild, memberId, permission),
+      );
     },
   };
 }

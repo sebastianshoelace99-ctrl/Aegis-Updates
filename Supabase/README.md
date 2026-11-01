@@ -1,6 +1,6 @@
 # Supabase setup
 
-Seven SQL files, run once, in this order. There is deliberately **no seed file**: the app starts
+Eight SQL files, run once, in this order. There is deliberately **no seed file**: the app starts
 with zero servers, and the first one you create is the first row in `guilds`.
 
 ## 1. Create the project
@@ -21,8 +21,9 @@ Open **SQL Editor → New query** and run each file in full:
 | 5 | [`05-invites.sql`](./05-invites.sql) | Adds expiring, reusable server invites and atomic invite redemption |
 | 6 | [`06-guild-ownership.sql`](./06-guild-ownership.sql) | Repairs owner memberships/roles from `guilds.owner_id`, prevents ownership changes, and blocks assigning the reserved owner role to anyone else |
 | 7 | [`07-guild-deletion.sql`](./07-guild-deletion.sql) | Adds an atomic server-deletion function that only deletes when the verified caller matches `guilds.owner_id` |
+| 8 | [`08-permissions-and-audit.sql`](./08-permissions-and-audit.sql) | Adds role permissions and channel overrides, assigns the default role to existing unassigned members, and creates moderation/search support |
 
-All seven are idempotent (`if not exists` / `drop ... if exists`), so re-running them after an
+All eight are idempotent (`if not exists` / `drop ... if exists`), so re-running them after an
 update is safe.
 
 The desktop app never receives database credentials. Its authenticated backend calls
@@ -138,7 +139,9 @@ has no effect until the next build.
 | `categories` | Ordered channel groups |
 | `channels` | `text` / `media` / `voice`, unique slug per guild, FK to its category |
 | `guild_members` | Roster order (`joined_at`) |
-| `guild_roles` | Per-guild roles with palette index and hoist flag |
+| `guild_roles` | Per-guild roles with palette index, hoist flag and permission list |
+| `guild_moderation_audit` | Immutable moderation action history (removed only when its server is deleted) |
+| `guild_member_restrictions` | Active member timeout/ban restrictions |
 | `guild_member_roles` | Assignments; composite FKs make a ghost role impossible |
 | `messages` | Cursor-ordered history; `(channel_id, created_at desc, id desc)` index |
 | `guild_invites` | Hashed invite codes with expiry, revocation and use count |

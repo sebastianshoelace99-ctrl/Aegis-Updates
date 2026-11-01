@@ -4,7 +4,8 @@ import { useLiveWorkspace } from "../../state/useLiveWorkspace";
 import { useMemberIdentity } from "../../state/useIdentity";
 import { useWorkspaceStore } from "../../state/workspaceStore";
 import { Avatar } from "../../ui/Avatar";
-import { HashGlyph, MediaGlyph, MembersGlyph, SpeakerGlyph } from "../../ui/Glyphs";
+import { HashGlyph, MediaGlyph, MembersGlyph, SearchGlyph, SpeakerGlyph } from "../../ui/Glyphs";
+import { useUiStore } from "../../state/uiStore";
 import styles from "./ChannelHeader.module.css";
 
 /**
@@ -20,6 +21,7 @@ export function ChannelHeader(): React.JSX.Element {
   const channelId = useWorkspaceStore((state) => state.channelId);
   const memberListOpen = useWorkspaceStore((state) => state.memberListOpen);
   const toggleMemberList = useWorkspaceStore((state) => state.toggleMemberList);
+  const openSearch = useUiStore((state) => state.openSearch);
   const live = useLiveWorkspace();
 
   const partner = dmPartner(live, channelId);
@@ -56,17 +58,28 @@ export function ChannelHeader(): React.JSX.Element {
       </div>
 
       {guild ? (
-        <button
-          type="button"
-          className={styles.members}
-          onClick={toggleMemberList}
-          aria-pressed={memberListOpen}
-          aria-label={`${memberListOpen ? "Hide" : "Show"} member list, ${count} members`}
-          title="Member list"
-        >
-          <MembersGlyph />
-          <span>{count}</span>
-        </button>
+        <>
+          <button
+            type="button"
+            className={styles.search}
+            onClick={() => openSearch(guild.id)}
+            aria-label={`Search messages in ${guild.name}`}
+            title="Search messages"
+          >
+            <SearchGlyph />
+          </button>
+          <button
+            type="button"
+            className={styles.members}
+            onClick={toggleMemberList}
+            aria-pressed={memberListOpen}
+            aria-label={`${memberListOpen ? "Hide" : "Show"} member list, ${count} members`}
+            title="Member list"
+          >
+            <MembersGlyph />
+            <span>{count}</span>
+          </button>
+        </>
       ) : null}
     </header>
   );

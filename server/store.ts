@@ -15,6 +15,15 @@ import {
   type Workspace,
 } from "../shared/domain";
 import {
+  hasChannelPermission,
+  hasGuildPermission as canGuildPermission,
+  type GuildPermission,
+} from "../shared/permissions";
+import type {
+  ModerationAction,
+  ModerationAuditEntry,
+} from "../shared/moderation";
+import {
   mentionedHandles,
   toggleReaction as applyReaction,
   type FileAttachment,
@@ -30,6 +39,16 @@ export type InviteSummary = {
   useCount: number;
 };
 
+export type GuildBackup = {
+  schemaVersion: 1;
+  exportedAt: string;
+  guild: Guild;
+  members: Member[];
+  messagesByChannel: Record<string, Message[]>;
+};
+
+export type ModerationAuditRecord = ModerationAuditEntry;
+
 /**
  * The persistence contract.
  *
@@ -43,6 +62,17 @@ export type Store = {
   ensureMember(member: Member): Promise<Member>;
   createGuild(input: CreateServerInput): Promise<{ guild: Guild; workspace: Workspace }>;
   deleteGuild(guildId: string, memberId: string): Promise<void>;
+  exportGuild(guildId: string): Promise<GuildBackup>;
+  moderateMember(
+    guildId: string,
+    actorId: string,
+    targetId: string,
+    action: ModerationAction,
+    reason: string,
+    durationMinutes?: number,
+  ): Promise<ModerationAuditRecord>;
+  listModerationAudit(guildId: string, memberId: string, limit: number): Promise<ModerationAuditRecord[]>;
+  listBannedMemberIds(guildId: string, memberId: string): Promise<string[]>;
   saveGuild(raw: unknown): Promise<{ guild: Guild; workspace: Workspace }>;
   isGuildOwner(guildId: string, memberId: string): Promise<boolean>;
   createInvite(
@@ -55,6 +85,7 @@ export type Store = {
   revokeInvite(guildId: string, inviteId: string, memberId: string): Promise<void>;
   redeemInvite(codeHash: string, member: Member): Promise<string>;
   listMessages(channelId: string, before: string | null, limit: number): Promise<Message[]>;
+  searchMessages(channelIds: readonly string[], query: string, limit: number): Promise<Message[]>;
   createMessage(
     channelId: string,
     authorId: string,
@@ -77,6 +108,16 @@ export type Store = {
   ): Promise<Message>;
   setPresence(memberId: string, presence: Presence): Promise<void>;
   hasChannel(channelId: string, memberId?: string): Promise<boolean>;
+  hasPermission(
+    channelId: string,
+    memberId: string,
+    permission: GuildPermission,
+  ): Promise<boolean>;
+  hasGuildPermission(
+    guildId: string,
+    memberId: string,
+    permission: GuildPermission,
+  ): Promise<boolean>;
 };
 
 const clone = <T>(value: T): T => structuredClone(value);
@@ -131,6 +172,29 @@ export function createMemoryStore(): Store {
     string,
     InviteSummary & { guildId: string; createdBy: string; codeHash: string }
   >();
+  const restrictions = new Map<
+    string,
+    { kind: "timeout" | "ban"; expiresAt: string | null; reason: string; createdBy: string }
+  >();
+  const moderationAudit = new Map<string, ModerationAuditRecord[]>();
+
+  const restrictionKey = (guildId: string, memberId: string, kind: "timeout" | "ban"): string =>
+    `${guildId}\u0000${memberId}\u0000${kind}`;
+
+  const hasActiveRestriction = (
+    guildId: string,
+    memberId: string,
+    kind: "timeout" | "ban",
+  ): boolean => {
+    const key = restrictionKey(guildId, memberId, kind);
+    const restriction = restrictions.get(key);
+    if (!restriction) return false;
+    if (restriction.expiresAt && Date.parse(restriction.expiresAt) <= Date.now()) {
+      restrictions.delete(key);
+      return false;
+    }
+    return true;
+  };
 
   return {
     kind: "memory",
@@ -138,13 +202,27 @@ export function createMemoryStore(): Store {
     async readWorkspace(memberId) {
       const visibleGuilds = memberId
         ? new Map(
-            [...guilds].filter(([, guild]) => guild.memberIds.includes(memberId)),
+            [...guilds].filter(
+              ([guildId, guild]) =>
+                guild.memberIds.includes(memberId) && !hasActiveRestriction(guildId, memberId, "ban"),
+            ),
           )
         : guilds;
       const workspace = workspaceOf(visibleGuilds, members);
       if (!memberId) return clone(workspace);
+      const guildsWithVisibleChannels = workspace.guilds.map((guild) => {
+        const channels = guild.channels.filter((channel) =>
+          hasChannelPermission(guild, channel, memberId, "view_channel"),
+        );
+        const categoryIds = new Set(channels.map((channel) => channel.categoryId));
+        return {
+          ...guild,
+          channels,
+          categories: guild.categories.filter((category) => categoryIds.has(category.id)),
+        };
+      });
       return clone({
-        guilds: workspace.guilds,
+        guilds: guildsWithVisibleChannels,
         members: workspace.members,
       });
     },
@@ -198,10 +276,128 @@ export function createMemoryStore(): Store {
       if (!guild) throw new HttpError(404, "Unknown server.");
       guilds.delete(guildId);
       owners.delete(guildId);
+      moderationAudit.delete(guildId);
+      const restrictionPrefix = `${guildId}\u0000`;
+      for (const key of restrictions.keys()) {
+        if (key.startsWith(restrictionPrefix)) restrictions.delete(key);
+      }
       for (const channel of guild.channels) messages.delete(channel.id);
       for (const [inviteId, invite] of invites) {
         if (invite.guildId === guildId) invites.delete(inviteId);
       }
+    },
+
+    async exportGuild(guildId) {
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      const messagesByChannel = Object.fromEntries(
+        guild.channels.map((channel) => [channel.id, clone(messages.get(channel.id) ?? [])]),
+      );
+      return {
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        guild: clone(guild),
+        members: guild.memberIds
+          .map((memberId) => members.get(memberId))
+          .filter((member): member is Member => member !== undefined)
+          .map(clone),
+        messagesByChannel,
+      };
+    },
+
+    async moderateMember(guildId, actorId, targetId, action, reason, durationMinutes = 30) {
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (!canGuildPermission(guild, actorId, "moderate_members")) {
+        throw new HttpError(403, "You do not have permission to moderate members.");
+      }
+      if (targetId === actorId || targetId === guild.ownerId) {
+        throw new HttpError(403, "You cannot moderate yourself or the server creator.");
+      }
+      if (action !== "unban" && !guild.memberIds.includes(targetId)) {
+        throw new HttpError(404, "That member is not in this server.");
+      }
+
+      const now = new Date();
+      let expiresAt: string | null = null;
+      if (action === "timeout") {
+        if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 40_320) {
+          throw new HttpError(400, "Timeouts must last between 1 minute and 28 days.");
+        }
+        expiresAt = new Date(now.getTime() + durationMinutes * 60_000).toISOString();
+        restrictions.set(restrictionKey(guildId, targetId, "timeout"), {
+          kind: "timeout",
+          expiresAt,
+          reason,
+          createdBy: actorId,
+        });
+      } else if (action === "remove_timeout") {
+        if (!hasActiveRestriction(guildId, targetId, "timeout")) {
+          throw new HttpError(404, "That member does not have an active timeout.");
+        }
+        restrictions.delete(restrictionKey(guildId, targetId, "timeout"));
+      } else if (action === "ban") {
+        restrictions.set(restrictionKey(guildId, targetId, "ban"), {
+          kind: "ban",
+          expiresAt: null,
+          reason,
+          createdBy: actorId,
+        });
+        const memberRoles = { ...guild.memberRoles };
+        delete memberRoles[targetId];
+        guilds.set(guildId, {
+          ...guild,
+          memberIds: guild.memberIds.filter((memberId) => memberId !== targetId),
+          memberRoles,
+        });
+      } else if (action === "kick") {
+        const memberRoles = { ...guild.memberRoles };
+        delete memberRoles[targetId];
+        guilds.set(guildId, {
+          ...guild,
+          memberIds: guild.memberIds.filter((memberId) => memberId !== targetId),
+          memberRoles,
+        });
+      } else if (action === "unban") {
+        if (!restrictions.delete(restrictionKey(guildId, targetId, "ban"))) {
+          throw new HttpError(404, "That member is not banned from this server.");
+        }
+      }
+
+      const record: ModerationAuditRecord = {
+        id: randomUUID(),
+        guildId,
+        actorId,
+        targetId,
+        action,
+        reason,
+        expiresAt,
+        createdAt: now.toISOString(),
+      };
+      moderationAudit.set(guildId, [...(moderationAudit.get(guildId) ?? []), record]);
+      return clone(record);
+    },
+
+    async listModerationAudit(guildId, memberId, limit) {
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (!canGuildPermission(guild, memberId, "moderate_members")) {
+        throw new HttpError(403, "You do not have permission to view moderation history.");
+      }
+      return clone((moderationAudit.get(guildId) ?? []).slice(-limit).reverse());
+    },
+
+    async listBannedMemberIds(guildId, memberId) {
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (!canGuildPermission(guild, memberId, "moderate_members")) {
+        throw new HttpError(403, "You do not have permission to view server bans.");
+      }
+      const prefix = `${guildId}\u0000`;
+      return [...restrictions.entries()]
+        .filter(([key, restriction]) => key.startsWith(prefix) && restriction.kind === "ban")
+        .map(([key]) => key.split("\u0000")[1] ?? "")
+        .filter(Boolean);
     },
 
     async saveGuild(raw) {
@@ -209,6 +405,19 @@ export function createMemoryStore(): Store {
       if (!guild) throw new HttpError(400, "That guild is not a valid workspace record.");
       const previous = guilds.get(guild.id);
       if (!previous) throw new HttpError(404, `Unknown guild: ${guild.id}`);
+      if (guild.ownerId !== previous.ownerId) {
+        throw new HttpError(403, "Server ownership cannot be changed.");
+      }
+      if (guild.memberRoles[guild.ownerId ?? ""]?.includes("owner") !== true) {
+        throw new HttpError(403, "The server creator must retain the owner role.");
+      }
+      if (
+        Object.entries(guild.memberRoles).some(
+          ([memberId, roleIds]) => memberId !== guild.ownerId && roleIds.includes("owner"),
+        )
+      ) {
+        throw new HttpError(403, "Only the server creator can hold the owner role.");
+      }
 
       // Supabase cascades a deleted channel's messages; the memory store must match.
       const keptChannels = new Set(guild.channels.map((channel) => channel.id));
@@ -234,8 +443,9 @@ export function createMemoryStore(): Store {
 
     async createInvite(guildId, memberId, codeHash, expiresAt) {
       if (!guilds.has(guildId)) throw new HttpError(404, "Unknown server.");
-      if (owners.get(guildId) !== memberId) {
-        throw new HttpError(403, "Only the server owner can manage invite links.");
+      const guild = guilds.get(guildId);
+      if (!guild || !canGuildPermission(guild, memberId, "manage_invites")) {
+        throw new HttpError(403, "You do not have permission to manage invites.");
       }
       const invite: InviteSummary & {
         guildId: string;
@@ -257,9 +467,10 @@ export function createMemoryStore(): Store {
     },
 
     async listInvites(guildId, memberId) {
-      if (!guilds.has(guildId)) throw new HttpError(404, "Unknown server.");
-      if (owners.get(guildId) !== memberId) {
-        throw new HttpError(403, "Only the server owner can manage invite links.");
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (!canGuildPermission(guild, memberId, "manage_invites")) {
+        throw new HttpError(403, "You do not have permission to manage invites.");
       }
       return clone(
         [...invites.values()]
@@ -272,9 +483,10 @@ export function createMemoryStore(): Store {
     },
 
     async revokeInvite(guildId, inviteId, memberId) {
-      if (!guilds.has(guildId)) throw new HttpError(404, "Unknown server.");
-      if (owners.get(guildId) !== memberId) {
-        throw new HttpError(403, "Only the server owner can manage invite links.");
+      const guild = guilds.get(guildId);
+      if (!guild) throw new HttpError(404, "Unknown server.");
+      if (!canGuildPermission(guild, memberId, "manage_invites")) {
+        throw new HttpError(403, "You do not have permission to manage invites.");
       }
       const invite = invites.get(inviteId);
       if (!invite || invite.guildId !== guildId) throw new HttpError(404, "Unknown invite.");
@@ -291,11 +503,26 @@ export function createMemoryStore(): Store {
       ) {
         throw new HttpError(404, "That invite is invalid, expired or revoked.");
       }
+      if (hasActiveRestriction(invite.guildId, member.id, "ban")) {
+        throw new HttpError(403, "You are banned from this server.");
+      }
       await this.ensureMember(member);
       const guild = guilds.get(invite.guildId);
       if (!guild) throw new HttpError(404, "That invite is invalid, expired or revoked.");
       if (!guild.memberIds.includes(member.id)) {
-        guilds.set(invite.guildId, { ...guild, memberIds: [...guild.memberIds, member.id] });
+        const memberRole = guild.roles.find((role) => role.id === "member");
+        guilds.set(invite.guildId, {
+          ...guild,
+          memberIds: [...guild.memberIds, member.id],
+          ...(memberRole
+            ? {
+                memberRoles: {
+                  ...guild.memberRoles,
+                  [member.id]: [...(guild.memberRoles[member.id] ?? []), memberRole.id],
+                },
+              }
+            : {}),
+        });
       }
       invite.useCount += 1;
       return invite.guildId;
@@ -307,6 +534,18 @@ export function createMemoryStore(): Store {
       const end = boundary === -1 ? all.length : boundary;
       const start = Math.max(0, end - limit);
       return clone(all.slice(start, end));
+    },
+
+    async searchMessages(channelIds, query, limit) {
+      const allowed = new Set(channelIds);
+      const needle = query.toLocaleLowerCase();
+      return clone(
+        [...messages.values()]
+          .flat()
+          .filter((message) => allowed.has(message.channelId) && message.body.toLocaleLowerCase().includes(needle))
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          .slice(0, limit),
+      );
     },
 
     async createMessage(channelId, authorId, body, attachments = []) {
@@ -373,7 +612,42 @@ export function createMemoryStore(): Store {
       const guild = [...guilds.values()].find((entry) =>
         entry.channels.some((channel) => channel.id === channelId),
       );
-      return Boolean(guild && (!memberId || guild.memberIds.includes(memberId)));
+      const channel = guild?.channels.find((entry) => entry.id === channelId);
+      if (!guild || !channel) return false;
+      return Boolean(
+        !memberId ||
+          (guild.memberIds.includes(memberId) &&
+            !hasActiveRestriction(guild.id, memberId, "ban") &&
+            hasChannelPermission(guild, channel, memberId, "view_channel")),
+      );
+    },
+
+    async hasPermission(channelId, memberId, permission) {
+      const guild = [...guilds.values()].find((entry) =>
+        entry.channels.some((channel) => channel.id === channelId),
+      );
+      const channel = guild?.channels.find((entry) => entry.id === channelId);
+      return Boolean(
+        guild &&
+          channel &&
+          guild.memberIds.includes(memberId) &&
+        !hasActiveRestriction(guild.id, memberId, "ban") &&
+        !(
+          hasActiveRestriction(guild.id, memberId, "timeout") &&
+          ["send_messages", "add_reactions", "connect_voice", "speak", "share_video", "share_screen"].includes(permission)
+        ) &&
+        hasChannelPermission(guild, channel, memberId, permission),
+      );
+    },
+
+    async hasGuildPermission(guildId, memberId, permission) {
+      const guild = guilds.get(guildId);
+      return Boolean(
+        guild &&
+          guild.memberIds.includes(memberId) &&
+        !hasActiveRestriction(guild.id, memberId, "ban") &&
+        canGuildPermission(guild, memberId, permission),
+      );
     },
   };
 }

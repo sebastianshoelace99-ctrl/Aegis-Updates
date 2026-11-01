@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_MEMBER_PERMISSIONS, GUILD_PERMISSIONS } from "./permissions";
 
 /**
  * The workspace graph, as data.
@@ -46,6 +47,15 @@ export const channelSchema = z.object({
   categoryId: z.string().min(1),
   /** Set when the channel is a commission thread; the gallery asset it points at. */
   commissionId: z.string().nullable(),
+  permissionOverwrites: z
+    .record(
+      z.string(),
+      z.object({
+        allow: z.array(z.enum(GUILD_PERMISSIONS)).default([]),
+        deny: z.array(z.enum(GUILD_PERMISSIONS)).default([]),
+      }),
+    )
+    .default({}),
 });
 export type Channel = z.infer<typeof channelSchema>;
 
@@ -67,6 +77,7 @@ export const guildRoleSchema = z.object({
   color: z.number().int().min(0).max(15),
   hoist: z.boolean(),
   position: z.number().int().min(0),
+  permissions: z.array(z.enum(GUILD_PERMISSIONS)).default(DEFAULT_MEMBER_PERMISSIONS),
 });
 export type GuildRole = z.infer<typeof guildRoleSchema>;
 
@@ -94,8 +105,8 @@ export const guildSchema = z.object({
   name: z.string().min(1),
   initial: z.string().min(1).max(2),
   accent: z.number().int().min(0).max(7),
-  categories: z.array(categorySchema).min(1),
-  channels: z.array(channelSchema).min(1),
+  categories: z.array(categorySchema),
+  channels: z.array(channelSchema),
   memberIds: z.array(z.string().min(1)).min(1),
   /** Defaults keep every guild written before roles existed parseable. */
   roles: z.array(guildRoleSchema).default([]),
@@ -360,4 +371,3 @@ export function normalizeWorkspace(raw: unknown): Workspace {
 
   return { guilds, members };
 }
-

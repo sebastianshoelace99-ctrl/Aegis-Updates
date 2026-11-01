@@ -43,6 +43,7 @@ const TABS: ReadonlyArray<{ id: SettingsTab; label: string }> = [
   { id: "status", label: "Status" },
   { id: "appearance", label: "Appearance" },
   { id: "voice", label: "Voice & Video" },
+  { id: "notifications", label: "Notifications" },
 ];
 
 const ACCENTS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -223,6 +224,7 @@ function SettingsDialog(): React.JSX.Element {
             {tab === "status" ? <StatusSection /> : null}
             {tab === "appearance" ? <AppearanceSection /> : null}
             {tab === "voice" ? <VoiceSection /> : null}
+            {tab === "notifications" ? <NotificationSection /> : null}
 
             <p className={styles.saved} data-failed={saveFailed}>
               {saveFailed
@@ -233,6 +235,77 @@ function SettingsDialog(): React.JSX.Element {
         </div>
       </div>
     </div>
+  );
+}
+
+function NotificationSection(): React.JSX.Element {
+  const notifications = useSettingsStore((state) => state.notifications);
+  const setNotifications = useSettingsStore((state) => state.setNotifications);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() =>
+    typeof window !== "undefined" && "Notification" in window
+      ? window.Notification.permission
+      : "unsupported",
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  const enable = async (enabled: boolean): Promise<void> => {
+    setError(null);
+    if (!enabled) {
+      setNotifications({ enabled: false });
+      return;
+    }
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setPermission("unsupported");
+      setError("Desktop notifications are not supported by this environment.");
+      return;
+    }
+    const granted =
+      window.Notification.permission === "granted" ||
+      (window.Notification.permission === "default" &&
+        (await window.Notification.requestPermission()) === "granted");
+    setPermission(window.Notification.permission);
+    if (!granted) {
+      setError("Allow notifications in Windows settings to enable desktop alerts.");
+      return;
+    }
+    setNotifications({ enabled: true });
+  };
+
+  return (
+    <section className={styles.section} aria-labelledby="settings-notifications-heading">
+      <h3 id="settings-notifications-heading" className={styles.sectionTitle}>
+        Desktop notifications
+      </h3>
+      <p className={styles.sectionBody}>
+        Notifications appear only when Aegis is not the focused window. Message text may be visible
+        in Windows notification history.
+      </p>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>Enable desktop notifications</span>
+        <input
+          type="checkbox"
+          checked={notifications.enabled}
+          onChange={(event) => void enable(event.target.checked)}
+          aria-label="Enable desktop notifications"
+        />
+      </label>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>Only notify me when mentioned</span>
+        <input
+          type="checkbox"
+          checked={notifications.mentionsOnly}
+          disabled={!notifications.enabled}
+          onChange={(event) => setNotifications({ mentionsOnly: event.target.checked })}
+          aria-label="Only notify me when mentioned"
+        />
+      </label>
+      <p className={styles.fieldHint} data-error={error !== null}>
+        {error ??
+          (permission === "granted"
+            ? "Windows notification permission is granted."
+            : "Windows permission is requested when you enable alerts.")}
+      </p>
+    </section>
   );
 }
 
@@ -1150,7 +1223,6 @@ function MicTest({ preferences }: MicTestProps): React.JSX.Element {
     </div>
   );
 }
-
 
 
 

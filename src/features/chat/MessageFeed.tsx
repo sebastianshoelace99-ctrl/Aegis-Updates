@@ -294,7 +294,7 @@ function Row({
 
   if (message.kind === "system") {
     return (
-      <div className={styles.system} data-testid="message-row">
+      <div className={styles.system} data-testid="message-row" data-message-id={message.id}>
         <span className={styles.systemMark} aria-hidden="true" />
         <span>
           <strong className={styles.systemAuthor}>{author.name}</strong> {message.body}
@@ -311,6 +311,7 @@ function Row({
       data-pending={pendingStatus}
       data-fresh={fresh}
       data-testid="message-row"
+      data-message-id={message.id}
     >
       <div className={styles.gutter}>
         {showHeader ? (
@@ -372,6 +373,8 @@ function Row({
 export type MessageFeedProps = {
   channelId: string;
   messages: readonly Message[];
+  jumpToMessageId: string | null;
+  onJumpHandled: () => void;
   pending: readonly PendingMessage[];
   isPending: boolean;
   error: unknown;
@@ -400,6 +403,8 @@ type Item = {
 export function MessageFeed({
   channelId,
   messages,
+  jumpToMessageId,
+  onJumpHandled,
   pending,
   isPending,
   error,
@@ -517,8 +522,8 @@ export function MessageFeed({
     const grew = total > previousCount.current;
     previousCount.current = total;
 
-    if (firstPaint || (grew && atBottom)) scrollToBottom("auto");
-  }, [items.length, atBottom, scrollToBottom]);
+    if (!jumpToMessageId && (firstPaint || (grew && atBottom))) scrollToBottom("auto");
+  }, [items.length, atBottom, jumpToMessageId, scrollToBottom]);
 
   /**
    * Anchored prepend: after older messages arrive, shift `scrollTop` by exactly the height that
@@ -534,6 +539,30 @@ export function MessageFeed({
     if (delta > 0) element.scrollTop += delta;
     anchor.current = null;
   }, [items.length]);
+
+  useEffect(() => {
+    if (!jumpToMessageId || isPending || isFetchingOlder) return;
+
+    const target = Array.from(
+      viewportRef.current?.querySelectorAll<HTMLElement>("[data-message-id]") ?? [],
+    ).find((element) => element.dataset.messageId === jumpToMessageId);
+    if (target) {
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+      onJumpHandled();
+    } else if (hasOlder) {
+      onLoadOlder();
+    } else {
+      onJumpHandled();
+    }
+  }, [
+    jumpToMessageId,
+    isPending,
+    isFetchingOlder,
+    hasOlder,
+    messages,
+    onLoadOlder,
+    onJumpHandled,
+  ]);
 
   return (
     <div className={styles.wrap}>
@@ -627,4 +656,3 @@ export function MessageFeed({
     </div>
   );
 }
-

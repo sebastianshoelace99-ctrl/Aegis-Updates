@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { guildSchema, type Guild, type Member } from "./domain";
+import { DEFAULT_MEMBER_PERMISSIONS, OWNER_PERMISSIONS } from "./permissions";
 
 /**
  * Server creation, shared by the dialog's validation and the backend's insert.
@@ -222,8 +223,22 @@ export function buildGuild(input: CreateServerInput, taken: Iterable<string>): G
     ],
     memberIds: [parsed.ownerId],
     roles: [
-      { id: "owner", name: "Owner", color: parsed.accent, hoist: true, position: 2 },
-      { id: "member", name: "Member", color: 7, hoist: true, position: 1 },
+      {
+        id: "owner",
+        name: "Owner",
+        color: parsed.accent,
+        hoist: true,
+        position: 2,
+        permissions: OWNER_PERMISSIONS,
+      },
+      {
+        id: "member",
+        name: "Member",
+        color: 7,
+        hoist: true,
+        position: 1,
+        permissions: DEFAULT_MEMBER_PERMISSIONS,
+      },
     ],
     memberRoles: { [parsed.ownerId]: ["owner"] },
   });

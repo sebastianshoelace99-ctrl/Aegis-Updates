@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { findChannelById, guildMembers, guildOfChannel } from "../../api/workspace";
+import type { Member } from "../../../shared/domain";
 import { useLiveWorkspace } from "../../state/useLiveWorkspace";
 import { useSettingsStore } from "../../state/settingsStore";
 import { useUiStore } from "../../state/uiStore";
@@ -36,9 +37,7 @@ import styles from "./Voice.module.css";
  * The call itself lives in `voiceSession`, not here, so switching to a text channel and back does
  * not drop it. What this route owns is presentation and the control bar.
  *
- * There are no remote peers until a signaling server exists, and the UI says so instead of
- * pretending: what is real is local capture, mute/deafen, the speaking ring, camera preview and
- * screen capture. Those are the parts a peer connection would consume unchanged.
+ * The server relays signaling only; peer media stays between participants.
  */
 
 export function VoiceRoute(): React.JSX.Element | null {
@@ -64,7 +63,13 @@ export function VoiceRoute(): React.JSX.Element | null {
     <div className={styles.route} data-testid="voice-stage">
       <div className={styles.stage}>
         {connectedHere ? (
-          <ConnectedStage voice={voice} name={profile.displayName} avatar={profile.avatar} accent={profile.accent} />
+          <ConnectedStage
+            voice={voice}
+            name={profile.displayName}
+            avatar={profile.avatar}
+            accent={profile.accent}
+            members={roster}
+          />
         ) : (
           <div className={styles.hero}>
             <span className={styles.heroMark} aria-hidden="true">
@@ -124,11 +129,13 @@ function ConnectedStage({
   name,
   avatar,
   accent,
+  members,
 }: {
   voice: VoiceSnapshot;
   name: string;
   avatar: string | null;
   accent: number;
+  members: Member[];
 }): React.JSX.Element {
   return (
     <>
@@ -153,16 +160,64 @@ function ConnectedStage({
           </div>
         )}
 
-        <div className={styles.emptyTile}>
-          <SpeakerGlyph />
-          <strong>No one else is here yet</strong>
-          <span>
-            Invite someone from the member list. Calls become peer-to-peer once signaling lands.
-          </span>
-        </div>
+        {voice.remotePeers.map((peer) => {
+          const member = members.find((entry) => entry.id === peer.memberId);
+          const videoStream = peer.streams.find((stream) => stream.getVideoTracks().length > 0);
+          return (
+            <div key={peer.memberId} className={styles.remoteTile}>
+              {videoStream ? (
+                <VoiceVideo stream={videoStream} label={`${member?.name ?? "Member"} video`} muted />
+              ) : (
+                <Avatar
+                  name={member?.name ?? "Member"}
+                  accent={member?.accent ?? 0}
+                  size="xl"
+                />
+              )}
+              {peer.streams
+                .filter((stream) => stream.getAudioTracks().length > 0)
+                .map((stream) => (
+                  <RemoteAudio key={stream.id} stream={stream} muted={voice.deafened} />
+                ))}
+              <span className={styles.tileLabel}>{member?.name ?? "Member"}</span>
+            </div>
+          );
+        })}
+        {voice.remotePeers.length === 0 ? (
+          <div className={styles.emptyTile}>
+            <SpeakerGlyph />
+            <strong>No one else is here yet</strong>
+            <span>Invite someone from the member list to start a peer-to-peer call.</span>
+          </div>
+        ) : null}
       </div>
     </>
   );
+}
+
+function RemoteAudio({
+  stream,
+  muted,
+}: {
+  stream: MediaStream;
+  muted: boolean;
+}): React.JSX.Element {
+  const ref = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    element.srcObject = stream;
+    element.muted = muted;
+    void element.play().catch((error: unknown) => {
+      console.warn("[aegis] remote audio playback was blocked", error);
+    });
+    return () => {
+      element.srcObject = null;
+    };
+  }, [muted, stream]);
+
+  return <audio ref={ref} autoPlay />;
 }
 
 function Controls({
@@ -294,4 +349,3 @@ function VoiceVideo({
     />
   );
 }
-

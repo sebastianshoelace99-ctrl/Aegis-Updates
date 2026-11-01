@@ -1,8 +1,25 @@
 import { z } from "zod";
 import { createServerInputSchema, type CreateServerInput } from "../../shared/guildFactory";
-import { backendEventSchema, type BackendEvent } from "../../shared/events";
+import {
+  backendEventSchema,
+  type BackendEvent,
+  type VoiceSignal,
+} from "../../shared/events";
 import { messageSchema, type FileAttachment, type Message } from "../../shared/messages";
-import { presenceSchema, workspaceSchema, type Presence, type Workspace } from "../../shared/domain";
+import {
+  moderationActionSchema,
+  moderationAuditEntrySchema,
+  type ModerationAction,
+  type ModerationAuditEntry,
+} from "../../shared/moderation";
+import {
+  guildSchema,
+  memberSchema,
+  presenceSchema,
+  workspaceSchema,
+  type Presence,
+  type Workspace,
+} from "../../shared/domain";
 import { API_BASE, authHeaders, request } from "./http";
 
 /**
@@ -70,6 +87,58 @@ export async function deleteGuild(guildId: string): Promise<Workspace> {
   return reply.workspace;
 }
 
+export const guildBackupSchema = z.object({
+  schemaVersion: z.literal(1),
+  exportedAt: z.string().datetime(),
+  guild: guildSchema,
+  members: z.array(memberSchema),
+  messagesByChannel: z.record(z.string(), z.array(messageSchema)),
+});
+export type GuildBackup = z.infer<typeof guildBackupSchema>;
+
+export async function fetchGuildBackup(guildId: string): Promise<GuildBackup> {
+  return guildBackupSchema.parse(
+    await request<unknown>(`/api/guilds/${encodeURIComponent(guildId)}/export`),
+  );
+}
+
+export async function fetchModerationAudit(
+  guildId: string,
+): Promise<{ entries: ModerationAuditEntry[]; bannedMemberIds: string[] }> {
+  return z
+    .object({
+      entries: z.array(moderationAuditEntrySchema),
+      bannedMemberIds: z.array(z.string().min(1)),
+    })
+    .parse(await request<unknown>(`/api/guilds/${encodeURIComponent(guildId)}/moderation`));
+}
+
+export async function moderateMember(input: {
+  guildId: string;
+  targetId: string;
+  action: ModerationAction;
+  reason: string;
+  durationMinutes?: number;
+}): Promise<{ entry: ModerationAuditEntry; workspace: Workspace }> {
+  const body = z
+    .object({
+      targetId: z.string().min(1).max(64),
+      action: moderationActionSchema,
+      reason: z.string().max(500),
+      durationMinutes: z.number().int().min(1).max(40_320).optional(),
+    })
+    .parse(input);
+  return z
+    .object({ entry: moderationAuditEntrySchema, workspace: workspaceSchema })
+    .parse(
+      await request<unknown>(`/api/guilds/${encodeURIComponent(input.guildId)}/moderation`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
+}
+
 export async function listGuildInvites(guildId: string): Promise<InviteSummary[]> {
   const reply = z
     .object({ invites: z.array(inviteSummarySchema) })
@@ -132,6 +201,13 @@ export async function fetchMessagesPage({
   return z.array(messageSchema).parse(raw);
 }
 
+export async function searchMessages(query: string, guildId?: string): Promise<Message[]> {
+  const params = new URLSearchParams({ q: query });
+  if (guildId) params.set("guildId", guildId);
+  const raw = await request<unknown>(`/api/search?${params.toString()}`);
+  return z.object({ messages: z.array(messageSchema) }).parse(raw).messages;
+}
+
 export async function postMessage(
   channelId: string,
   body: string,
@@ -182,6 +258,62 @@ export async function postPresence(presence: Presence): Promise<void> {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ presence }),
+  });
+}
+
+const iceServerSchema = z.object({
+  urls: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
+  username: z.string().optional(),
+  credential: z.string().optional(),
+});
+
+export async function joinVoiceChannel(
+  channelId: string,
+): Promise<{ peers: string[]; iceServers: RTCIceServer[]; participantLimit: number }> {
+  const raw = await request<unknown>("/api/voice/join", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ channelId }),
+  });
+  const reply = z
+    .object({
+      peers: z.array(z.string().min(1)),
+      iceServers: z.array(iceServerSchema).min(1).max(10),
+      participantLimit: z.number().int().min(2).max(6),
+    })
+    .parse(raw);
+  return {
+    peers: reply.peers,
+    iceServers: reply.iceServers,
+    participantLimit: reply.participantLimit,
+  };
+}
+
+export async function heartbeatVoiceChannel(channelId: string): Promise<void> {
+  await request<void>("/api/voice/heartbeat", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ channelId }),
+  });
+}
+
+export async function leaveVoiceChannel(channelId: string): Promise<void> {
+  await request<void>("/api/voice/join", {
+    method: "DELETE",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ channelId }),
+  });
+}
+
+export async function sendVoiceSignal(
+  channelId: string,
+  toMemberId: string,
+  signal: VoiceSignal,
+): Promise<void> {
+  await request<void>("/api/voice/signal", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ channelId, toMemberId, signal }),
   });
 }
 

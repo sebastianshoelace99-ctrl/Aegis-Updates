@@ -1,4 +1,5 @@
 import { getSelfId } from "../state/identity";
+import type { VoiceSignal } from "../../shared/events";
 import { postTyping, subscribeEvents, type BackendStatus } from "./backend";
 import { isDmChannelId } from "./dms";
 import type { Message } from "./messages";
@@ -18,6 +19,8 @@ export type RealtimeHandlers = {
   onReaction: (message: Message) => void;
   onTyping: (channelId: string, memberId: string) => void;
   onPresence: (memberId: string, presence: Presence) => void;
+  onVoicePeer: (channelId: string, memberId: string, joined: boolean) => void;
+  onVoiceSignal: (channelId: string, memberId: string, signal: VoiceSignal) => void;
   onStatus?: (status: BackendStatus) => void;
 };
 
@@ -40,6 +43,18 @@ export function startRealtime(handlers: RealtimeHandlers): StopRealtime {
     if (event.type === "typing") {
       // The server echoes every typing signal, including this window's own.
       if (event.memberId !== getSelfId()) handlers.onTyping(event.channelId, event.memberId);
+      return;
+    }
+
+    if (event.type === "voice-peer") {
+      if (event.memberId !== getSelfId()) {
+        handlers.onVoicePeer(event.channelId, event.memberId, event.joined);
+      }
+      return;
+    }
+
+    if (event.type === "voice-signal") {
+      handlers.onVoiceSignal(event.channelId, event.fromMemberId, event.signal);
       return;
     }
 

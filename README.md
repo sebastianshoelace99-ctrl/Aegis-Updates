@@ -116,6 +116,10 @@ so a guild the client accepts is exactly a guild the server accepts.
 | `GET /api/workspace` | Members, guilds, categories, channels, roles, assignments |
 | `POST /api/guilds` | Create a server; answers with the created guild and the whole workspace |
 | `PATCH /api/guilds/:id` | Rename, description, icon, notification policy, system channel, roles |
+| `GET /api/guilds/:id/moderation` | Read the latest 100 moderation audit entries; requires moderation permission |
+| `POST /api/guilds/:id/moderation` | Timeout, remove timeout, kick, ban, or unban a member |
+| `GET /api/guilds/:id/export` | Owner-only JSON export of server metadata and message history |
+| `GET /api/search?q=...&guildId=...` | Search messages in channels where the caller can read history |
 | `GET /api/channels/:id/messages?before=&limit=` | Ascending page, exclusive timestamp cursor |
 | `POST /api/channels/:id/messages` | Insert one message; author comes from the request identity; `attachments: [{ uploadId }]` |
 | `POST /api/uploads` | Raw file body, streamed to disk; 100 MB cap; answers with the attachment record |
@@ -307,20 +311,29 @@ id is cleared on read instead of dangling in front of the UI.
 the highest role overall; server settings can create, rename, recolour, hoist, delete and assign
 roles. Deleting a role removes every assignment, so the record cannot point at a ghost.
 
-**Voice is a real local session.** Joining a voice channel requests the microphone through
-`getUserMedia`, attaches an analyser for the speaking ring and meter, and keeps the call alive
-across navigation. Mute disables the audio track; deafen remembers and restores the previous mute
-state; camera and screen share are captured separately and previewed with `srcObject`. Leaving
-stops every track, the analyser and the animation frame. Electron gets an explicit origin-scoped
-media permission policy and a `setDisplayMediaRequestHandler` with the Windows system picker.
-There is no signaling server yet, so there are no remote peers - the UI says so rather than
-pretending. The peer connection is the missing piece behind `joinVoice`; the state machine,
-constraints and controls are already the ones it would use.
+**Permissions and moderation are enforced by the backend.** Roles carry explicit permissions,
+channel overrides can allow or deny them, and timed-out members cannot send, react, or join/speak
+in voice. Moderators can timeout a member for 1 minute to 28 days, remove a timeout, kick, ban, or
+unban. The latest 100 actions are visible in server settings; audit records cannot be edited or
+deleted while their server exists.
 
-Still open: Electron fuses (see deviation 4 in `docs/04`), WebRTC signaling (the backend carries
-events, not media), message search, role reordering, and tray/notification badges. The packaged smoke test drives all of this with Chromium's
-fake media devices, so capture is tested without a human clicking a permission prompt.
+**Voice calls use peer-to-peer WebRTC.** The backend authorizes voice membership and relays
+bounded SDP/ICE signaling only; audio, camera and screen media are sent directly between up to
+six participants. Joining requests microphone access, the speaking meter reads local audio, and
+the call survives navigation. Mute disables the local audio track; deafen also mutes remote audio.
+Camera and screen sharing can be added or stopped during a call. Leaving closes peer connections
+and stops every capture track. The backend uses a public STUN server by default; configure
+`AEGIS_ICE_SERVERS` with deployment-owned STUN/TURN JSON in the backend environment for reliable
+connections through restrictive NATs. TURN credentials are delivered only after an authorized
+member joins a voice channel. A TURN service is not bundled or operated by Aegis Shield.
 
+**Search, notifications, and export.** Message search is limited to readable text/media channels
+and returns up to 50 matches; selecting a result opens its channel and loads older pages until that
+message is in view. Desktop notifications are opt-in, require OS notification permission, and
+respect focus, Do Not Disturb, mention-only preferences, and the server's notification policy.
+The owner-only JSON export includes server configuration, member metadata, message history, and
+attachment metadata; it does not include uploaded file bytes, and there is no restore/import flow.
+Back up the backend upload directory separately.
 
 
 ## Analysis target

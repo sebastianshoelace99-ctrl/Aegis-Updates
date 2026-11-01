@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { z } from "zod";
 import type { OAuthConfig } from "./oauth";
 
 /**
@@ -11,6 +12,15 @@ import type { OAuthConfig } from "./oauth";
  */
 
 export type StoreKind = "memory" | "supabase";
+
+const iceServerSchema = z.object({
+  urls: z.union([
+    z.string().regex(/^(?:stun|stuns|turn|turns):/i).max(2048),
+    z.array(z.string().regex(/^(?:stun|stuns|turn|turns):/i).max(2048)).min(1).max(8),
+  ]),
+  username: z.string().max(512).optional(),
+  credential: z.string().max(2048).optional(),
+});
 
 /**
  * Abuse-prevention settings, read once at boot.
@@ -59,6 +69,7 @@ export type Config = {
    * database: a 100 MB file belongs on a disk, not in a `jsonb` column.
    */
   uploadDir: string;
+  iceServers: z.infer<typeof iceServerSchema>[];
   abuse: AbuseConfig;
   auth: AuthConfig;
 };
@@ -142,6 +153,25 @@ export function readConfig(): Config {
       : authFileRaw || join(process.cwd(), "data", "auth.json");
   const apiKey = text("AEGIS_API_KEY");
   const uploadDir = text("AEGIS_UPLOAD_DIR") || join(process.cwd(), "data", "uploads");
+  const iceServersRaw = text("AEGIS_ICE_SERVERS");
+  let iceServers: Config["iceServers"];
+  if (iceServersRaw.length === 0) {
+    iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+  } else {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(iceServersRaw);
+    } catch (error) {
+      throw new Error(
+        `AEGIS_ICE_SERVERS must be a JSON array: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    const result = z.array(iceServerSchema).min(1).max(10).safeParse(parsed);
+    if (!result.success) {
+      throw new Error(`AEGIS_ICE_SERVERS is invalid: ${result.error.issues[0]?.message ?? "invalid value"}`);
+    }
+    iceServers = result.data;
+  }
   const requireAuth = text("AEGIS_REQUIRE_AUTH") === "1";
   const production = text("NODE_ENV").toLowerCase() === "production";
 
@@ -182,6 +212,7 @@ export function readConfig(): Config {
     supabaseDbUrl,
     apiKey,
     uploadDir,
+    iceServers,
     abuse: {
       // Opt-out rather than opt-in: a deployment that forgets to configure this is protected.
       enabled: text("AEGIS_RATE_LIMIT").toLowerCase() !== "off",

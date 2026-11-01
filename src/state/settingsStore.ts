@@ -6,6 +6,7 @@ import {
   saveSettings,
   type Appearance,
   type CustomStatus,
+  type DesktopNotificationPreferences,
   type Profile,
   type Settings,
   type VoicePreferences,
@@ -37,6 +38,7 @@ export type SettingsState = Settings & {
   resetStatus: () => void;
   setAppearance: (patch: Partial<Appearance>) => void;
   setVoice: (patch: Partial<VoicePreferences>) => void;
+  setNotifications: (patch: Partial<DesktopNotificationPreferences>) => void;
   resetAll: () => void;
 };
 
@@ -61,6 +63,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
         status: state.status,
         appearance: state.appearance,
         voice: state.voice,
+        notifications: state.notifications,
       });
     },
 
@@ -72,6 +75,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
         status: { ...state.status, ...patch },
         appearance: state.appearance,
         voice: state.voice,
+        notifications: state.notifications,
       });
     },
 
@@ -83,6 +87,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
         status: { ...state.status, emoji: "", text: "" },
         appearance: state.appearance,
         voice: state.voice,
+        notifications: state.notifications,
       });
     },
 
@@ -94,6 +99,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
         status: state.status,
         appearance: { ...state.appearance, ...patch },
         voice: state.voice,
+        notifications: state.notifications,
       });
     },
 
@@ -105,6 +111,19 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
         status: state.status,
         appearance: state.appearance,
         voice: { ...state.voice, ...patch },
+        notifications: state.notifications,
+      });
+    },
+
+    setNotifications: (patch) => {
+      const state = get();
+      commit({
+        version: state.version,
+        profile: state.profile,
+        status: state.status,
+        appearance: state.appearance,
+        voice: state.voice,
+        notifications: { ...state.notifications, ...patch },
       });
     },
 

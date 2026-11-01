@@ -14,11 +14,8 @@ import type { Presence } from "./workspace";
  */
 
 export const SETTINGS_KEY = "aegis.settings.v1";
-/**
- * 3: the accent became a hue that applies to every edition, and `tint` arrived. See `parseSettings`
- * for why a v2 document's stored accent is retired rather than trusted.
- */
-export const SETTINGS_VERSION = 3;
+/** 4: add opt-in desktop notification preferences without changing existing appearance settings. */
+export const SETTINGS_VERSION = 4;
 
 export const MAX_DISPLAY_NAME = 32;
 export const MAX_PRONOUNS = 40;
@@ -169,6 +166,12 @@ export const voicePreferencesSchema = z.object({
 });
 export type VoicePreferences = z.infer<typeof voicePreferencesSchema>;
 
+export const desktopNotificationSchema = z.object({
+  enabled: z.boolean().default(false),
+  mentionsOnly: z.boolean().default(true),
+});
+export type DesktopNotificationPreferences = z.infer<typeof desktopNotificationSchema>;
+
 export const DEFAULT_PROFILE: Profile = {
   displayName: "Nyx",
   pronouns: "",
@@ -199,6 +202,9 @@ export const DEFAULT_VOICE: VoicePreferences = {
   screenQuality: "1080p",
 };
 
+export const DEFAULT_DESKTOP_NOTIFICATIONS: DesktopNotificationPreferences =
+  desktopNotificationSchema.parse({});
+
 /**
  * `.default()` fills a missing section; `.catch()` replaces an invalid one. A single bad field
  * therefore costs that section, not the whole document - and a version bump can add a section
@@ -210,6 +216,9 @@ export const settingsSchema = z.object({
   status: customStatusSchema.default(DEFAULT_STATUS).catch(DEFAULT_STATUS),
   appearance: appearanceSchema.default(DEFAULT_APPEARANCE).catch(DEFAULT_APPEARANCE),
   voice: voicePreferencesSchema.default(DEFAULT_VOICE).catch(DEFAULT_VOICE),
+  notifications: desktopNotificationSchema
+    .default(DEFAULT_DESKTOP_NOTIFICATIONS)
+    .catch(DEFAULT_DESKTOP_NOTIFICATIONS),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 
@@ -219,6 +228,7 @@ export const DEFAULT_SETTINGS: Settings = {
   status: DEFAULT_STATUS,
   appearance: DEFAULT_APPEARANCE,
   voice: DEFAULT_VOICE,
+  notifications: DEFAULT_DESKTOP_NOTIFICATIONS,
 };
 
 export function parseSettings(raw: unknown): Settings {
@@ -234,7 +244,7 @@ export function parseSettings(raw: unknown): Settings {
   const source = (raw ?? {}) as { version?: unknown };
   const version = typeof source.version === "number" ? source.version : 0;
 
-  if (version < SETTINGS_VERSION) {
+  if (version < 3) {
     return {
       ...parsed.data,
       appearance: { ...parsed.data.appearance, accent: "theme", tint: "" },
@@ -296,4 +306,3 @@ export function hasCustomStatus(status: CustomStatus): boolean {
 export function hasCosmetics(profile: Profile): boolean {
   return profile.decoration > 0 || profile.effect > 0 || profile.frame > 0;
 }
-
